@@ -1,0 +1,35 @@
+1. Sistema de compatibilidade entre perfis, utilizando interesses, papéis, dinâmicas, práticas, fetiches, preferências e limites para calcular afinidade e facilitar conexões mais assertivas.
+
+2. Definição de limites e preferências, permitindo que o usuário indique o que gosta, o que não faz, o que talvez faria e o que deseja experimentar, promovendo mais segurança e clareza nas interações.
+
+3. Níveis de experiência no perfil, como iniciante, explorando, experiente ou veterano, ajudando usuários a se conectarem com pessoas em fases semelhantes.
+
+4. Sistema de verificação de perfis, com opções como validação por selfie, documento ou participação em eventos, aumentando a confiança dentro da plataforma.
+
+5. Sistema de reputação, com avaliações simples após interações ou encontros, como respeito, comunicação e pontualidade, ajudando a manter a qualidade da comunidade.
+
+6. Indicação de ambientes preferidos, como encontros privados, eventos, clubes, viagens ou interações online, melhorando a compatibilidade entre perfis.
+
+7. Filtro de localização inteligente, incluindo distância máxima, cidades frequentes e viagens planejadas, facilitando buscas mais úteis e realistas.
+
+8. Área de eventos, festas e encontros, permitindo divulgar e organizar experiências presenciais, fortalecendo o engajamento da comunidade.
+
+9. Agenda ou disponibilidade do usuário, permitindo informar dias e horários preferidos, como fins de semana, noites ou datas específicas, facilitando o planejamento de encontros.
+
+10. Sistema de descoberta, com sugestões como perfis próximos, novos, verificados ou com alta compatibilidade, aumentando o tempo de uso da plataforma.
+
+11. Uso de tags rápidas, como “discreto”, “sem pressa”, “primeira vez” ou “apenas conversa”, facilitando a comunicação rápida e objetiva entre usuários.
+
+12. Recursos de segurança e privacidade, como ocultar rosto, fotos privadas, desbloqueio de álbuns, bloqueio de usuários e modo invisível, aumentando a confiança no uso do sistema.
+
+13. Estrutura adequada para perfis de casal, permitindo cadastrar informações individuais de cada participante e também preferências do casal como unidade.
+
+14. Sistema de convites, permitindo enviar convite para conversa, evento ou encontro, tornando as interações mais organizadas e claras.
+
+15. Área educativa para iniciantes, com explicações sobre conceitos, regras de respeito, consentimento, etiqueta e boas práticas, ajudando no onboarding e também no SEO do site.
+
+-----------
+warning: in the working copy of 'src/modules/registration/infrastructure/services/registration.service.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/modules/registration/presentation/models/register-form.model.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/modules/registration/presentation/pages/RegisterPage.vue', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/modules/registration/domain/constants/interests.ts', LF will be replaced by CRLF the next time Git touches it

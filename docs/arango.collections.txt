@@ -1,0 +1,39 @@
+profile: homem, mulher, casal_hm, casal_hh, casal_mm
+
+users: {
+	id,
+	email,
+	name,
+	password,
+	profile,
+	cityId,
+	status,
+	interests[],
+	dynamics[],
+	practices[],
+	fetiches[]
+}
+
+cities: {
+	id,
+	name,
+	uf
+}
+
+user-auths: {
+	id,
+	userId,
+	provider: local | google | facebook | x,
+	providerUserId,
+	providerEmail,
+	providerName
+}
+
+user-profiles: {
+	userId,
+	name,
+	sexualOrientation,
+	dateOfBirthday,
+	bodyType,
+	role
+}
