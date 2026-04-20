@@ -1,7 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { Notify } from 'quasar';
-import { getApiErrorMessage } from 'src/shared/utils/getApiErrorMessage';
-import { notify } from 'src/shared/utils/notify.utils';
+import { getApiErrorMessage } from '@/shared/utils/getApiErrorMessage';
+import { notify } from '@/shared/utils/notify.utils';
 
 declare module 'axios' {
   export interface AxiosRequestConfig {

@@ -3,6 +3,7 @@ import { RouteRecordRaw } from 'vue-router';
 import ROUTE_WEB from '../modules/web/router';
 import ROUTE_REGISTRATION from '../modules/registration/registration.routes';
 import ROUTE_DOMAINS from '../modules/domains/domains.routes';
+import ROUTE_BANK_ACCOUNTS from '../modules/bank-accounts/bank-account.routes'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -12,7 +13,8 @@ const routes: RouteRecordRaw[] = [
       { path: '', component: () => import('pages/IndexPage.vue') },
       ...ROUTE_WEB,
       ...ROUTE_REGISTRATION,
-      ...ROUTE_DOMAINS
+      ...ROUTE_DOMAINS,
+      ...ROUTE_BANK_ACCOUNTS
     ],
   },
 
