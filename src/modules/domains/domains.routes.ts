@@ -17,7 +17,13 @@ export default [
   {
     path: 'domains/new',
     name: 'domain-create',
-    component: () => import(/* webpackChunkName: "Registration" */ 'src/modules/domains/pages/DomainFormPage.vue'),
+    component: () => import(/* webpackChunkName: "Registration" */ 'src/modules/domains/pages/DomainFormBasicPage.vue'),
+
+  },
+  {
+    path: 'domains/new-pro',
+    name: 'domain-create-pro',
+    component: () => import(/* webpackChunkName: "Registration" */ 'src/modules/domains/pages/DomainFormProfessionalPage.vue'),
 
   },
   {
