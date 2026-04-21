@@ -15,7 +15,7 @@
         no-caps
         unelevated
         class="header-btn"
-        :to="{ name: 'bank-account-create' }"
+        :to="{ name: 'bank-account-new' }"
       />
     </div>
 
