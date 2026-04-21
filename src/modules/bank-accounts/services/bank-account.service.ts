@@ -1,5 +1,6 @@
-import http from '@/shared/infrastructure/http/https'
-import { BankAccountList } from '../models/bank-account-list.'
+import http from '@/shared/infrastructure/http/http'
+import { BankAccountList } from '../models/bank-account-list'
+import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse'
 
 const mock: BankAccountList[] = [
   {
@@ -27,9 +28,8 @@ const mock: BankAccountList[] = [
 
 export const bankAccountService = {
   async findAll(): Promise<BankAccountList[]> {
-    const { data } = await http.get<BankAccountList[]>('/bank-accounts');
-
-    return data;
+    const { data } = await http.get<ApiResponse<BankAccountList[]>>('bank-accounts');
+    return data.data;
   },
 
   async findById(id: string): Promise<BankAccountList | null> {

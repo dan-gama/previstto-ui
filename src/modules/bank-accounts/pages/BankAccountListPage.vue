@@ -139,7 +139,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import type { QTableColumn } from 'quasar'
-import { BankAccountList } from '../models/bank-account-list.'
+import { BankAccountList } from '../models/bank-account-list'
 import { bankAccountService } from '../services/bank-account.service'
 
 const loading = ref(false)
@@ -154,7 +154,7 @@ const columns: QTableColumn[] = [
   { name: 'actions', label: 'Ações', field: 'actions', align: 'center', sortable: false, },
 ]
 
-async function loadBankAccount() {
+async function loadBankAccounts() {
   loading.value = true
 
   try {
@@ -165,7 +165,7 @@ async function loadBankAccount() {
 }
 
 onMounted(() => {
-  loadBankAccount();
+  loadBankAccounts();
 })
 </script>
 
