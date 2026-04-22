@@ -1,5 +1,5 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { getApiErrorMessage } from '@/shared/utils/getApiErrorMessage';
+import { apiErrorMessage } from '@/shared/utils/api-error-message.utils';
 import { notify } from '@/shared/utils/notify.utils';
 
 declare module 'axios' {
@@ -52,7 +52,7 @@ http.interceptors.response.use(
     }
 
     if (showErrorNotify)
-      notify.error(getApiErrorMessage(error));
+      notify.error(apiErrorMessage(error));
 
     return Promise.reject(error);
   }

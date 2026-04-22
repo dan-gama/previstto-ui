@@ -7,7 +7,7 @@ interface ApiErrorRespose {
   }
 }
 
-export function getApiErrorMessage(error: AxiosError): string {
+export function apiErrorMessage(error: AxiosError): string {
   const data = error.response?.data as ApiErrorRespose | undefined
 
   if (Array.isArray(data?.message)) {
