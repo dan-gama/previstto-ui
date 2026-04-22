@@ -48,11 +48,14 @@
               emit-value
               map-options
               clearable
+              use-input
+              input-debounce="300"
               v-model="form.bank"
               label="Banco"
+              class="app-field"
               :options="bankOptions"
               :rules="[required('Informe o banco')]"
-              class="app-field"
+              @filter="(val, update) => filterFn(val, update, banksOptionsOriginal, (v) => bankOptions = v)"
             />
           </div>
 
@@ -113,14 +116,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, Ref, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Notify } from 'quasar'
 import { bankAccountService } from '../services/bank-account.service'
 import { BankAccountForm } from '../models/bank-account-form'
 import { SharedRules } from '@/shared/domain/validation/form-rules'
 import { SelectOptions } from '@/shared/dtos/select-options'
+import { useSelectFilter } from '@/shared/utils/filter-select'
 
+const { filterFn } = useSelectFilter();
 const { required } = SharedRules;
 
 const loading = ref<boolean>(false);
@@ -146,6 +151,7 @@ const domainTypes = [
 
 const isEditMode = computed(() => !!route.params.id)
 
+const banksOptionsOriginal = ref<SelectOptions[]>([]);
 const bankOptions = ref<SelectOptions[]>([]);
 const accountTypeOptions = ref<SelectOptions[]>([]);
 
@@ -158,7 +164,9 @@ async function loadDomains() {
       bankAccountService.getAccountTypes(),
     ])
 
+    banksOptionsOriginal.value = banks;
     bankOptions.value = banks;
+
     accountTypeOptions.value = accountTypes;
   } finally {
     loading.value = false;
@@ -232,6 +240,23 @@ onMounted(() => {
     loadDomain()
   }
 })
+
+function filterSelect(val: string, update: (callback: () => void) => void) {
+  if (val === '') {
+    update(() => {
+      bankOptions.value = banksOptionsOriginal.value;
+    });
+    return;
+  }
+
+  update(() => {
+    const needle = val.toLocaleLowerCase();
+    bankOptions.value = banksOptionsOriginal.value.filter(
+      v => v.label.toLocaleLowerCase().indexOf(needle) > -1
+    )
+  });
+}
+
 </script>
 
 <style lang="scss" scoped>
