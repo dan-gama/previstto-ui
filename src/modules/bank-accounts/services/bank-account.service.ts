@@ -10,21 +10,21 @@ const mock: BankAccountList[] = [
     id: '001',
     name: 'C6',
     bankName: 'C6 Bank S.A.',
-    accountTypeName : 'Pessoa Física',
+    accountTypeName: 'Pessoa Física',
     active: true,
   },
   {
     id: '002',
     name: 'Next',
     bankName: 'Next - Banco Digital',
-    accountTypeName : 'Pessoa Física',
+    accountTypeName: 'Pessoa Física',
     active: true,
   },
   {
     id: '003',
     name: 'BB',
     bankName: 'Banco do Brasil',
-    accountTypeName : 'Pessoa Física',
+    accountTypeName: 'Pessoa Física',
     active: true,
   },
 ]
@@ -53,7 +53,7 @@ export const bankAccountService = {
   },
 
   async getAccountTypes(): Promise<SelectOptions[]> {
-    const { data } = await http.get<ApiResponse<AccountTypeDomain[]>>('domains/banks');
+    const { data } = await http.get<ApiResponse<AccountTypeDomain[]>>('domains/account-types');
     return data.data.map(d => ({
       value: d.id,
       label: `${d.code}-${d.name}`
