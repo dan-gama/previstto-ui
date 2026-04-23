@@ -1,4 +1,4 @@
-export type ValidationRule = (val: any) => boolean | string;
+export type ValidationRule = (val: string) => boolean | string;
 
 export const SharedRules = {
   required: (msg = 'Campo obrigatório'): ValidationRule =>
@@ -38,28 +38,28 @@ export const SharedRules = {
     },
   ageMin: (minAge = 18, msg = 'É necessário ter pelo menos 18 anos'): ValidationRule =>
     (val: string) => {
-    // Se o campo estiver vazio, não valida aqui.
+      // Se o campo estiver vazio, não valida aqui.
 
-    // Converte a string no formato DD/MM/YYYY em números
-    const [day, month, year] = val.split('/').map(Number);
+      // Converte a string no formato DD/MM/YYYY em números
+      const [day, month, year] = val.split('/').map(Number);
 
-    const birthDate = new Date(year, month - 1, day);
-    const today = new Date();
+      const birthDate = new Date(year, month - 1, day);
+      const today = new Date();
 
-    let age = today.getFullYear() - birthDate.getFullYear();
+      let age = today.getFullYear() - birthDate.getFullYear();
 
-    // Calcula a diferença entre os meses
-    const monthDiff = today.getMonth() - birthDate.getMonth();
+      // Calcula a diferença entre os meses
+      const monthDiff = today.getMonth() - birthDate.getMonth();
 
-    // Ajusta a idade se a pessoa ainda não fez aniversário no ano atual
-    if (
-      monthDiff < 0 || // ainda não chegou no mês do aniversário
-      (monthDiff === 0 && today.getDate() < birthDate.getDate()) // chegou no mês, mas não no dia
-    ) {
-      age--;
+      // Ajusta a idade se a pessoa ainda não fez aniversário no ano atual
+      if (
+        monthDiff < 0 || // ainda não chegou no mês do aniversário
+        (monthDiff === 0 && today.getDate() < birthDate.getDate()) // chegou no mês, mas não no dia
+      ) {
+        age--;
+      }
+
+      // Caso contrário, retorna a mensagem de erro
+      return age >= minAge || msg;
     }
-
-    // Caso contrário, retorna a mensagem de erro
-    return age >= minAge || msg;
-  }
 }

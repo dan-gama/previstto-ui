@@ -116,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, Ref, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Notify } from 'quasar'
 import { bankAccountService } from '../services/bank-account.service'
@@ -141,13 +141,6 @@ const form = ref<BankAccountForm>({
   active: true,
   balance: 0,
 });
-
-const domainTypes = [
-  { label: 'Categoria', value: 'CATEGORY' },
-  { label: 'Banco', value: 'BANK' },
-  { label: 'Cartão de Crédito', value: 'CREDIT_CARD' },
-  { label: 'Bandeira', value: 'CARD_BRAND' },
-]
 
 const isEditMode = computed(() => !!route.params.id)
 
@@ -240,23 +233,6 @@ onMounted(() => {
     loadDomain()
   }
 })
-
-function filterSelect(val: string, update: (callback: () => void) => void) {
-  if (val === '') {
-    update(() => {
-      bankOptions.value = banksOptionsOriginal.value;
-    });
-    return;
-  }
-
-  update(() => {
-    const needle = val.toLocaleLowerCase();
-    bankOptions.value = banksOptionsOriginal.value.filter(
-      v => v.label.toLocaleLowerCase().indexOf(needle) > -1
-    )
-  });
-}
-
 </script>
 
 <style lang="scss" scoped>
