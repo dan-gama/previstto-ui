@@ -28,7 +28,7 @@ module.exports = configure(function (/* ctx */) {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['i18n', 'axios'],
+    boot: ['i18n', 'axios', 'v-money'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: ['app.scss'],
@@ -50,8 +50,14 @@ module.exports = configure(function (/* ctx */) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
       target: {
-        browser: ['es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1'],
+        browser: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
         node: 'node16',
+      },
+      extendViteConf(viteConf) {
+        viteConf.build.target = 'es2020'
+        viteConf.optimizeDeps.esbuildOptions = {
+          target: 'es2020'
+        }
       },
       alias: {
         '@': path.join(__dirname, 'src'),
