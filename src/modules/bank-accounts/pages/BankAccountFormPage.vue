@@ -19,7 +19,7 @@
         label="Voltar"
         color="primary"
         class="back-btn"
-        :to="{ name: 'bank-account-list' }"
+        :to="{ name: 'bank-accounts-list' }"
       />
     </div>
 
@@ -42,6 +42,16 @@
           @submit="onSubmit"
           class="row q-col-gutter-lg"
         >
+          <div class="col-12 col-md-12">
+            <q-input
+              v-model="form.name"
+              outlined
+              label="Nome"
+              :rules="[required()]"
+              class="app-field"
+            />
+          </div>
+
           <div class="col-12 col-md-4">
             <q-select
               outlined
@@ -55,28 +65,35 @@
               class="app-field"
               :options="bankOptions"
               :rules="[required('Informe o banco')]"
-              @filter="(val, update) => filterFn(val, update, banksOptionsOriginal, (v) => bankOptions = v)"
+              @filter="(val, update) => filterFn(val, update, bankOptionsOriginal, (v) => bankOptions = v)"
             />
           </div>
 
-          <div class="col-12 col-md-8">
-            <q-input
-              v-model="form.name"
+          <div class="col-12 col-md-4">
+            <q-select
               outlined
-              label="Nome"
+              emit-value
+              map-options
+              clearable
+              use-input
+              input-debounce="300"
+              v-model="form.accountType"
+              label="Tipo de conta"
+              class="app-field"
+              :options="accountTypeOptions"
+              :rules="[required('Informe o tipo de conta')]"
+              @filter="(val, update) => filterFn(val, update, accountTypeOptionsOriginal, (v) => accountTypeOptions = v)"
+            />
+          </div>
+
+          <div class="col-12 col-md-4">
+            <q-input
+              v-model.lazy="form.balance"
+              outlined
+              label="Saldo atual"
               :rules="[required()]"
               class="app-field"
-            />
-          </div>
-
-          <div class="col-12">
-            <q-input
-              v-model="form.name"
-              outlined
-              autogrow
-              type="textarea"
-              label="Descrição"
-              class="app-field"
+              v-money
             />
           </div>
 
@@ -98,7 +115,7 @@
           flat
           no-caps
           label="Cancelar"
-          :to="{ name: 'bank-account-list' }"
+          :to="{ name: 'bank-accounts-list' }"
         />
 
         <q-btn
@@ -144,9 +161,10 @@ const form = ref<BankAccountForm>({
 
 const isEditMode = computed(() => !!route.params.id)
 
-const banksOptionsOriginal = ref<SelectOptions[]>([]);
 const bankOptions = ref<SelectOptions[]>([]);
+const bankOptionsOriginal = ref<SelectOptions[]>([]);
 const accountTypeOptions = ref<SelectOptions[]>([]);
+const accountTypeOptionsOriginal = ref<SelectOptions[]>([]);
 
 async function loadDomains() {
   loading.value = true;
@@ -157,9 +175,10 @@ async function loadDomains() {
       bankAccountService.getAccountTypes(),
     ])
 
-    banksOptionsOriginal.value = banks;
+    bankOptionsOriginal.value = banks;
     bankOptions.value = banks;
 
+    accountTypeOptionsOriginal.value = accountTypes;
     accountTypeOptions.value = accountTypes;
   } finally {
     loading.value = false;
