@@ -28,7 +28,7 @@ export default boot(({ app }) => {
         Money3Directive.updated(input, binding)
       }
     },
-    unmounted(el, binding) {
+    unmounted(el) {
       const input = el.tagName === 'INPUT' ? el : el.querySelector('input')
       if (input) {
         Money3Directive.beforeUnmount(input)
