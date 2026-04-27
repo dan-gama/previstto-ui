@@ -5,3 +5,11 @@ export interface BankAccountForm {
   balance: number | null;
   active: boolean;
 }
+
+export interface BankAccountList {
+  id: string;
+  name: string;
+  bankName: string;
+  accountTypeName: string;
+  active: boolean;
+}

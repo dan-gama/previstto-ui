@@ -2,7 +2,7 @@ import { RouteRecordRaw } from 'vue-router';
 
 import ROUTE_WEB from '../modules/web/router';
 import ROUTE_REGISTRATION from '../modules/registration/registration.routes';
-import ROUTE_DOMAINS from '../modules/domains/domains.routes';
+import ROUTE_DOMAINS from '../modules/examples/examples.routes';
 import ROUTE_BANK_ACCOUNTS from '../modules/bank-accounts/bank-account.routes'
 
 const routes: RouteRecordRaw[] = [

@@ -1,61 +1,22 @@
-import type { DomainModel } from '../models/domain.model'
-
-const mockDomains: DomainModel[] = [
-  {
-    id: '1',
-    type: 'CATEGORY',
-    name: 'Alimentação',
-    description: 'Categoria para gastos com alimentação',
-    active: true,
-  },
-  {
-    id: '2',
-    type: 'BANK',
-    name: 'Banco do Brasil',
-    description: 'Instituição bancária',
-    active: true,
-  },
-  {
-    id: '3',
-    type: 'CREDIT_CARD',
-    name: 'Cartão Nubank',
-    description: 'Cartão de crédito principal',
-    active: true,
-  },
-]
+import http from '@/shared/infrastructure/http/http'
+import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse'
+import { SelectOptions } from '@/shared/dtos/select-options'
+import { BankDomain, AccountTypeDomain } from '../models/domain.model'
 
 export const domainService = {
-  async findAll(): Promise<DomainModel[]> {
-    return Promise.resolve([...mockDomains])
+  async getBanks(): Promise<SelectOptions[]> {
+    const { data } = await http.get<ApiResponse<BankDomain[]>>('domains/banks');
+    return data.data.map(d => ({
+      value: d.id,
+      label: `${d.code}-${d.name}`
+    }));
   },
 
-  async findById(id: string): Promise<DomainModel | null> {
-    const item = mockDomains.find((x) => x.id === id) ?? null
-    return Promise.resolve(item)
-  },
-
-  async create(payload: Omit<DomainModel, 'id'>): Promise<DomainModel> {
-    const item: DomainModel = {
-      id: String(Date.now()),
-      ...payload,
-    }
-
-    mockDomains.push(item)
-    return Promise.resolve(item)
-  },
-
-  async update(id: string, payload: Omit<DomainModel, 'id'>): Promise<DomainModel | null> {
-    const index = mockDomains.findIndex((x) => x.id === id)
-
-    if (index === -1) {
-      return Promise.resolve(null)
-    }
-
-    mockDomains[index] = {
-      id,
-      ...payload,
-    }
-
-    return Promise.resolve(mockDomains[index])
-  },
+  async getAccountTypes(): Promise<SelectOptions[]> {
+    const { data } = await http.get<ApiResponse<AccountTypeDomain[]>>('domains/account-types');
+    return data.data.map(d => ({
+      value: d.id,
+      label: `${d.code}-${d.name}`
+    }));
+  }
 }

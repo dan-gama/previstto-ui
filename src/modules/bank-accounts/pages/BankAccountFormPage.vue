@@ -38,7 +38,7 @@
       <q-separator />
 
       <q-card-section class="form-body">
-        <q-form @submit.prevent="onSubmit" class="row q-col-gutter-lg" ref="form">
+        <q-form @submit.prevent="onSubmit" class="row q-col-gutter-lg" ref="form" greedy>
           <div class="col-12 col-md-12">
             <q-input
               v-model="model.name"
@@ -56,6 +56,7 @@
               map-options
               clearable
               use-input
+              :disable="isEditMode"
               input-debounce="300"
               v-model="model.bank"
               label="Banco"
@@ -85,12 +86,13 @@
 
           <div class="col-12 col-md-4">
             <q-input
-              v-model.lazy="model.balance"
               outlined
+              v-money
+              :disable="isEditMode"
+              v-model.lazy="model.balance"
               label="Saldo atual"
               :rules="[required()]"
               class="app-field"
-              v-money
             />
           </div>
 
@@ -133,11 +135,13 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { bankAccountService } from '../services/bank-account.service'
-import { BankAccountForm } from '../models/bank-account-form'
+import { domainService } from '@/modules/domains/services/domain.service'
+import { BankAccountForm } from '../models/bank-account.model'
 import { SharedRules } from '@/shared/domain/validation/form-rules'
 import { SelectOptions } from '@/shared/dtos/select-options'
 import { useSelectFilter } from '@/shared/utils/filter-select'
 import { notify } from '@/shared/utils/notify.utils'
+import { BankAccountMapper } from '../mappers/bank-account.mapper'
 
 const { filterFn } = useSelectFilter();
 const { required } = SharedRules;
@@ -169,8 +173,8 @@ async function loadDomains() {
 
   try {
     const [banks, accountTypes] = await Promise.all([
-      bankAccountService.getBanks(),
-      bankAccountService.getAccountTypes(),
+      domainService.getBanks(),
+      domainService.getAccountTypes(),
     ])
 
     bankOptionsOriginal.value = banks;
@@ -183,7 +187,7 @@ async function loadDomains() {
   }
 }
 
-async function loadAccountBank() {
+async function loadBankAccount() {
   if (!route.params.id) return
 
   const accountBank = await bankAccountService.findById(String(route.params.id))
@@ -209,6 +213,7 @@ async function loadAccountBank() {
 }
 
 async function onSubmit() {
+
   /* Verifica se os dados estão válidos */
   const valid = await form.value.validate(true);
   if (!valid) return
@@ -217,10 +222,10 @@ async function onSubmit() {
 
   try {
     if (isEditMode.value) {
-      await bankAccountService.update(String(route.params.id), model.value)
+      await bankAccountService.update(String(route.params.id), BankAccountMapper.toUpdate(model.value));
       notify.success('Conta bancária atualizada')
     } else {
-      await bankAccountService.create(model.value)
+      await bankAccountService.create(BankAccountMapper.toCreate(model.value));
       notify.success('Conta bancária criada com sucesso');
     }
 
@@ -233,7 +238,7 @@ async function onSubmit() {
 onMounted(() => {
   loadDomains();
   if (isEditMode.value) {
-    loadAccountBank();
+    loadBankAccount();
   }
 })
 </script>
