@@ -4,6 +4,7 @@ import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse'
 import { BankAccountForm } from '../models/bank-account-form'
 import { SelectOptions } from '@/shared/dtos/select-options'
 import { BankDomain, AccountTypeDomain } from '../models/bank-account-domains'
+import { BankAccount } from '../models/bank-account'
 
 const mock: BankAccountList[] = [
   {
@@ -34,14 +35,18 @@ export const bankAccountService = {
     await http.post('bank-accounts', payload);
   },
 
+  async update(id:string, payload: BankAccountForm): Promise<void> {
+    await http.patch(`bank-accounts/${ id }`, payload);
+  },
+
   async findAll(): Promise<BankAccountList[]> {
     const { data } = await http.get<ApiResponse<BankAccountList[]>>('bank-accounts');
     return data.data;
   },
 
-  async findById(id: string): Promise<BankAccountList | null> {
-    const item = mock.find((x) => x.id === id) ?? null
-    return Promise.resolve(item)
+  async findById(id: string): Promise<BankAccount | null> {
+    const { data } = await http.get<ApiResponse<BankAccount>>(`bank-accounts/${ id }`)
+    return data.data;
   },
 
   async getBanks(): Promise<SelectOptions[]> {

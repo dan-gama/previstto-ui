@@ -4,4 +4,5 @@ export interface BankAccount {
   bank: string;
   accountType: string;
   balance: number;
+  active: boolean;
 }

@@ -38,13 +38,10 @@
       <q-separator />
 
       <q-card-section class="form-body">
-        <q-form
-          @submit="onSubmit"
-          class="row q-col-gutter-lg"
-        >
+        <q-form @submit.prevent="onSubmit" class="row q-col-gutter-lg" ref="form">
           <div class="col-12 col-md-12">
             <q-input
-              v-model="form.name"
+              v-model="model.name"
               outlined
               label="Nome"
               :rules="[required()]"
@@ -60,7 +57,7 @@
               clearable
               use-input
               input-debounce="300"
-              v-model="form.bank"
+              v-model="model.bank"
               label="Banco"
               class="app-field"
               :options="bankOptions"
@@ -77,7 +74,7 @@
               clearable
               use-input
               input-debounce="300"
-              v-model="form.accountType"
+              v-model="model.accountType"
               label="Tipo de conta"
               class="app-field"
               :options="accountTypeOptions"
@@ -88,7 +85,7 @@
 
           <div class="col-12 col-md-4">
             <q-input
-              v-model.lazy="form.balance"
+              v-model.lazy="model.balance"
               outlined
               label="Saldo atual"
               :rules="[required()]"
@@ -99,7 +96,7 @@
 
           <div class="col-12">
             <q-toggle
-              v-model="form.active"
+              v-model="model.active"
               label="Registro ativo"
               color="primary"
             />
@@ -135,12 +132,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Notify } from 'quasar'
 import { bankAccountService } from '../services/bank-account.service'
 import { BankAccountForm } from '../models/bank-account-form'
 import { SharedRules } from '@/shared/domain/validation/form-rules'
 import { SelectOptions } from '@/shared/dtos/select-options'
 import { useSelectFilter } from '@/shared/utils/filter-select'
+import { notify } from '@/shared/utils/notify.utils'
 
 const { filterFn } = useSelectFilter();
 const { required } = SharedRules;
@@ -151,7 +148,8 @@ const router = useRouter()
 
 const saving = ref(false)
 
-const form = ref<BankAccountForm>({
+const form = ref();
+const model = ref<BankAccountForm>({
   name: null,
   bank: null,
   accountType: null,
@@ -185,71 +183,57 @@ async function loadDomains() {
   }
 }
 
-async function loadDomain() {
+async function loadAccountBank() {
   if (!route.params.id) return
 
-  // const domain = await domainService.findById(
-  //   String(route.params.id)
-  // )
+  const accountBank = await bankAccountService.findById(String(route.params.id))
 
-  // if (!domain) {
-  //   Notify.create({
-  //     type: 'negative',
-  //     message: 'Registro não encontrado',
-  //   })
+  if (!accountBank) {
+    notify.error('Conta bancária não encontrada')
 
-  //   router.push({
-  //     name: 'domain-list',
-  //   })
+    router.push({
+      name: 'bank-accounts-list',
+    })
 
-  //   return
-  // }
+    return
+  }
 
-  // form.value = {
-  //   type: domain.type,
-  //   name: domain.name,
-  //   description: domain.description,
-  //   active: domain.active,
-  // }
+  model.value = {
+    accountType: accountBank.accountType,
+    bank: accountBank.bank,
+    name: accountBank.name,
+    balance: accountBank.balance,
+    active: accountBank.active,
+  }
+
 }
 
 async function onSubmit() {
+  /* Verifica se os dados estão válidos */
+  const valid = await form.value.validate(true);
+  if (!valid) return
+
   saving.value = true
 
   try {
     if (isEditMode.value) {
-      // await domainService.update(
-      //   String(route.params.id),
-      //   form.value
-      // )
-
-      // Notify.create({
-      //   type: 'positive',
-      //   message: 'Registro atualizado',
-      // })
+      await bankAccountService.update(String(route.params.id), model.value)
+      notify.success('Conta bancária atualizada')
     } else {
-      await bankAccountService.create(
-        form.value
-      )
-
-      Notify.create({
-        type: 'positive',
-        message: 'Registro criado',
-      })
+      await bankAccountService.create(model.value)
+      notify.success('Conta bancária criada com sucesso');
     }
 
     router.push({
-      name: 'domain-list',
+      name: 'bank-accounts-list',
     })
-  } finally {
-    saving.value = false
-  }
+  } finally { saving.value = false }
 }
 
 onMounted(() => {
   loadDomains();
   if (isEditMode.value) {
-    loadDomain()
+    loadAccountBank();
   }
 })
 </script>

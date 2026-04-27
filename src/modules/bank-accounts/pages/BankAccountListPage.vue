@@ -116,7 +116,7 @@
               icon="edit"
               color="primary"
               class="action-btn"
-              :to="{ name: 'domain-edit', params: { id: props.row.id } }"
+              :to="{ name: 'bank-account-edit', params: { id: props.row.id } }"
             >
               <q-tooltip>Editar</q-tooltip>
             </q-btn>
