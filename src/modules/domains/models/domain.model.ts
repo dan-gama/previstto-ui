@@ -9,3 +9,9 @@ export interface AccountTypeDomain {
   code: string;
   name: string;
 }
+
+export interface CreditCardBrandDomain {
+  id: string;
+  code: string;
+  name: string;
+}

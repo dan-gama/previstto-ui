@@ -18,5 +18,13 @@ export const domainService = {
       value: d.id,
       label: `${d.code}-${d.name}`
     }));
+  },
+
+  async getCreditCardBrands(): Promise<SelectOptions[]> {
+    const { data } = await http.get<ApiResponse<AccountTypeDomain[]>>('domains/credit-card-brands');
+    return data.data.map(d => ({
+      value: d.id,
+      label: `${d.code}-${d.name}`
+    }));
   }
 }
