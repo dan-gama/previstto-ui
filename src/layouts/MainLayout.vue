@@ -231,7 +231,7 @@
                 </q-tooltip>
               </q-item>
 
-              <q-item clickable v-ripple class="menu-item">
+              <q-item clickable v-ripple class="menu-item" to="/bank-accounts">
                 <q-item-section avatar class="menu-icon-section">
                   <q-icon name="account_balance" />
                 </q-item-section>
