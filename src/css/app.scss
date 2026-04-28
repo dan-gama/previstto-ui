@@ -42,3 +42,15 @@ h6 {
   text-align: justify;
   word-break: break-word;
 }
+
+/* Remove as setas no Chrome, Safari, Edge e Opera */
+.no-spinner input::-webkit-outer-spin-button,
+.no-spinner input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Remove as setas no Firefox */
+.no-spinner input[type=number] {
+  -moz-appearance: textfield;
+}

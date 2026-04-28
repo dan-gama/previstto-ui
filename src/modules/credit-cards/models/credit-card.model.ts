@@ -1,9 +1,9 @@
 export interface CreditCardForm {
-  name: string,
-  brand: string,
-  digits: number,
+  name: string | null,
+  brand: string | null,
+  digits: number | null,
   bank: string | null,
-  limit: number | null,
+  limit: number,
   description: string | null,
   active: boolean
 }

@@ -24,7 +24,7 @@ export const domainService = {
     const { data } = await http.get<ApiResponse<AccountTypeDomain[]>>('domains/credit-card-brands');
     return data.data.map(d => ({
       value: d.id,
-      label: `${d.code}-${d.name}`
+      label: d.name
     }));
   }
 }
