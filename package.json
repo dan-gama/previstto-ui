@@ -1,8 +1,8 @@
 {
-  "name": "weblovers",
+  "name": "previstto",
   "version": "0.0.1",
-  "description": "WebLovers App",
-  "productName": "WebLovers",
+  "description": "Previstto - Controle Financeiro",
+  "productName": "Previstto",
   "author": "Danilo Gama <danilo.gama@gmail.com>",
   "private": true,
   "scripts": {

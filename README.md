@@ -1,6 +1,6 @@
-# WebLovers (weblovers)
+# Previstto (previstto)
 
-WebLovers App
+Previstto App
 
 ## Install the dependencies
 ```bash
