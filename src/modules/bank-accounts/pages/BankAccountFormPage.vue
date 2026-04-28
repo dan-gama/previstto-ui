@@ -19,7 +19,7 @@
         label="Voltar"
         color="primary"
         class="back-btn"
-        :to="{ name: 'bank-accounts-list' }"
+        :to="{ name: 'bank-account-list' }"
       />
     </div>
 
@@ -114,7 +114,7 @@
           flat
           no-caps
           label="Cancelar"
-          :to="{ name: 'bank-accounts-list' }"
+          :to="{ name: 'bank-account-list' }"
         />
 
         <q-btn
@@ -196,7 +196,7 @@ async function loadBankAccount() {
     notify.error('Conta bancária não encontrada')
 
     router.push({
-      name: 'bank-accounts-list',
+      name: 'bank-account-list',
     })
 
     return
@@ -230,7 +230,7 @@ async function onSubmit() {
     }
 
     router.push({
-      name: 'bank-accounts-list',
+      name: 'bank-account-list',
     })
   } finally { saving.value = false }
 }

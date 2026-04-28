@@ -1,7 +1,7 @@
 export default [
   {
     path: 'bank-accounts',
-    name: 'bank-accounts-list',
+    name: 'bank-account-list',
     component: () => import(/* webpackChunkName: "BankAccount" */ 'src/modules/bank-accounts/pages/BankAccountListPage.vue'),
   },
   {
@@ -15,4 +15,3 @@ export default [
     component: () => import(/* webpackChunkName: "BankAccount" */ 'src/modules/bank-accounts/pages/BankAccountFormPage.vue'),
   }
 ]
-

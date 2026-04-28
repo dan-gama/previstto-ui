@@ -139,7 +139,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import type { QTableColumn } from 'quasar'
-import { BankAccountList } from '../models/bank-account-list'
+import { BankAccountList } from '../models/bank-account.model'
 import { bankAccountService } from '../services/bank-account.service'
 
 const loading = ref(false)
