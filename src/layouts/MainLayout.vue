@@ -245,7 +245,7 @@
                 </q-tooltip>
               </q-item>
 
-              <q-item clickable v-ripple class="menu-item">
+              <q-item clickable v-ripple class="menu-item" to="/credit-cards">
                 <q-item-section avatar class="menu-icon-section">
                   <q-icon name="credit_card" />
                 </q-item-section>
