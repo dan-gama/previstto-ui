@@ -1,3 +1,5 @@
+import { parseDecimalValue } from '@/shared/utils/number.utils';
+
 export type ValidationRule = (val: string) => boolean | string;
 
 export const SharedRules = {
@@ -6,6 +8,21 @@ export const SharedRules = {
 
   email: (msg = 'E-mail inválido'): ValidationRule =>
     (val: string) => /.+@.+\..+/.test(val) || msg,
+
+  decimalGreaterThanZero: (msg = 'O valor deve ser maior que zero'): ValidationRule =>
+    (val: string | number | null | undefined) => {
+      if (val === null || val === undefined || val === '') return true;
+
+      const decimalValue = parseDecimalValue(val);
+      return (!Number.isNaN(decimalValue) && decimalValue > 0) || msg;
+    },
+
+  exactLength: (length: number, msg = `O campo deve ter ${length} caracteres`): ValidationRule =>
+    (val: string | number | null | undefined) => {
+      if (val === null || val === undefined || val === '') return true;
+
+      return String(val).length === length || msg;
+    },
 
   dateIfNotEmpty: (msg = 'Data inválida'): ValidationRule =>
     (val: string | null | undefined) => {

@@ -56,7 +56,6 @@
               map-options
               clearable
               use-input
-              :disable="isEditMode"
               input-debounce="300"
               v-model="model.brand"
               label="Bandeira"
@@ -67,7 +66,7 @@
             />
           </div>
 
-          <div class="col-12 col-md-2">
+          <div class="col-12 col-md-4">
             <q-input
               outlined
               unmasked-value
@@ -75,20 +74,20 @@
               v-model.number="model.digits"
               maxlength="4"
               label="4 últimos dígitos"
-              :rules="[required()]"
+              :rules="[required(), exactLength(4, 'Esse campo deve conter 4 números')]"
               class="app-field no-spinner"
             />
           </div>
 
-          <div class="col-12 col-md-2">
+          <div class="col-12 col-md-4">
             <q-input
               outlined
               v-money
-              :disable="isEditMode"
               v-model.lazy="model.limit"
-              label="Limite"
-              :rules="[required()]"
+              label="Limite (R$)"
+              :rules="[required(), decimalGreaterThanZero()]"
               class="app-field"
+              input-class="text-right"
             />
           </div>
 
@@ -108,7 +107,7 @@
             />
           </div>
 
-          <div class="col-12 col-md-8">
+          <div class="col-12 col-md-4">
             <q-input
               v-model="model.description"
               outlined
@@ -135,7 +134,7 @@
           flat
           no-caps
           label="Cancelar"
-          :to="{ name: 'bank-account-list' }"
+          :to="{ name: 'credit-card-list' }"
         />
 
         <q-btn
@@ -160,12 +159,13 @@ import { SharedRules } from '@/shared/domain/validation/form-rules'
 import { SelectOptions } from '@/shared/dtos/select-options'
 import { useSelectFilter } from '@/shared/utils/filter-select'
 import { notify } from '@/shared/utils/notify.utils'
+import { parseCurrencyValue } from '@/shared/utils/number.utils'
 import { CreditCardForm } from '../models/credit-card.model'
 import { creditCardService } from '../services/credit-card-service'
 import { CreditCardMapper } from '../mappers/credit-card.mapper'
 
 const { filterFn } = useSelectFilter();
-const { required } = SharedRules;
+const { decimalGreaterThanZero, required, exactLength } = SharedRules;
 
 const loading = ref<boolean>(false);
 const route = useRoute()
@@ -190,6 +190,7 @@ const creditCardBrandOptionsOriginal = ref<SelectOptions[]>([]);
 const creditCardBrandOptions = ref<SelectOptions[]>([]);
 const bankOptions = ref<SelectOptions[]>([]);
 const bankOptionsOriginal = ref<SelectOptions[]>([]);
+
 async function loadDomains() {
   loading.value = true;
 
@@ -245,11 +246,16 @@ async function onSubmit() {
   saving.value = true
 
   try {
+    const normalizedModel = {
+      ...model.value,
+      limit: parseCurrencyValue(model.value.limit)
+    };
+
     if (isEditMode.value) {
-      await creditCardService.update(String(route.params.id), CreditCardMapper.toUpdate(model.value));
+      await creditCardService.update(String(route.params.id), CreditCardMapper.toUpdate(normalizedModel));
       notify.success('Cartão de crédito atualizado')
     } else {
-      await creditCardService.create(CreditCardMapper.toCreate(model.value));
+      await creditCardService.create(CreditCardMapper.toCreate(normalizedModel));
       notify.success('Cartão de crédito criado com sucesso');
     }
 

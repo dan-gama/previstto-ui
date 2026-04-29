@@ -1,6 +1,6 @@
-import { BankAccountForm } from "./bank-account.model";
+import { BankAccountForm } from './bank-account.model';
 
-export interface CreateBankAccountCommand extends BankAccountForm { }
+export type CreateBankAccountCommand = BankAccountForm
 
 export interface UpdateBankAccountCommand {
   name: string | null,

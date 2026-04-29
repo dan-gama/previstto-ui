@@ -6,7 +6,6 @@ export default boot(({ app }) => {
   const globalConfig = {
     decimal: ',',
     thousands: '.',
-    prefix: 'R$ ',
     precision: 2,
     masked: false
   }
