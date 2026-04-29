@@ -80,16 +80,35 @@
           </div>
 
           <div class="col-12 col-md-4">
-            <q-input
-              outlined
-              v-money
-              v-model.lazy="model.limit"
+            <money-input
+              v-model="model.limit"
               label="Limite (R$)"
-              :rules="[required(), decimalGreaterThanZero()]"
               class="app-field"
-              input-class="text-right"
+              :rules="[decimalGreaterThanZero()]"
             />
           </div>
+
+          <!-- <div class="col-12 col-md-4">
+            <q-field
+              outlined
+              stack-label
+              label="Limite (R$)"
+              v-model="model.limit"
+              class="app-field"
+
+            >
+              <template v-slot:control>
+                <money3
+                  v-model="model.limit"
+                  v-bind="moneyConfig"
+                  @focus="$event.target.select()"
+                  class="q-field__input text-right"
+                  style="border: none; outline: none; background: transparent; width: 100%; color: inherit;"
+                >
+                </money3>
+              </template>
+            </q-field>
+          </div> -->
 
           <div class="col-12 col-md-4">
             <q-select
@@ -159,10 +178,11 @@ import { SharedRules } from '@/shared/domain/validation/form-rules'
 import { SelectOptions } from '@/shared/dtos/select-options'
 import { useSelectFilter } from '@/shared/utils/filter-select'
 import { notify } from '@/shared/utils/notify.utils'
-import { parseCurrencyValue } from '@/shared/utils/number.utils'
 import { CreditCardForm } from '../models/credit-card.model'
 import { creditCardService } from '../services/credit-card-service'
+import { Money3Component as money3 } from 'v-money3'
 import { CreditCardMapper } from '../mappers/credit-card.mapper'
+import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 
 const { filterFn } = useSelectFilter();
 const { decimalGreaterThanZero, required, exactLength } = SharedRules;
@@ -172,6 +192,13 @@ const route = useRoute()
 const router = useRouter()
 
 const saving = ref(false)
+
+const moneyConfig = {
+  decimal: ',',
+  thousands: '.',
+  precision: 2,
+  masked: false,
+}
 
 const form = ref();
 const model = ref<CreditCardForm>({
@@ -240,22 +267,29 @@ async function loadCreditCard() {
 async function onSubmit() {
 
   /* Verifica se os dados estão válidos */
+  console.log(model.value.limit);
+
   const valid = await form.value.validate(true);
   if (!valid) return
 
   saving.value = true
 
   try {
-    const normalizedModel = {
-      ...model.value,
-      limit: parseCurrencyValue(model.value.limit)
-    };
+
+    console.log('limit-before', model.value.limit);
+
+    model.value.limit = Number(model.value.limit);
+
+    // model.value.limit = decimalToNumber(model.value.limit);
+
+    // console.log('limit-after', model.value.limit);
+
 
     if (isEditMode.value) {
-      await creditCardService.update(String(route.params.id), CreditCardMapper.toUpdate(normalizedModel));
+      await creditCardService.update(String(route.params.id), CreditCardMapper.toUpdate(model.value));
       notify.success('Cartão de crédito atualizado')
     } else {
-      await creditCardService.create(CreditCardMapper.toCreate(normalizedModel));
+      await creditCardService.create(CreditCardMapper.toCreate(model.value));
       notify.success('Cartão de crédito criado com sucesso');
     }
 
