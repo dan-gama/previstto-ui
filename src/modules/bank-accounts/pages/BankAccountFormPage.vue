@@ -85,15 +85,13 @@
           </div>
 
           <div class="col-12 col-md-4">
-            <q-input
-              outlined
-              v-money
+            <money-input
+              v-model="model.balance"
               :disable="isEditMode"
-              v-model.lazy="model.balance"
-              label="Saldo atual"
-              :rules="[required()]"
+              label="Saldo atual (R$)"
               class="app-field"
             />
+
           </div>
 
           <div class="col-12">
@@ -142,6 +140,7 @@ import { SelectOptions } from '@/shared/dtos/select-options'
 import { useSelectFilter } from '@/shared/utils/filter-select'
 import { notify } from '@/shared/utils/notify.utils'
 import { BankAccountMapper } from '../mappers/bank-account.mapper'
+import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 
 const { filterFn } = useSelectFilter();
 const { required } = SharedRules;
