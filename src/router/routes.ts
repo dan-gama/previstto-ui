@@ -4,6 +4,7 @@ import ROUTE_WEB from '../modules/web/router';
 import ROUTE_DOMAINS from '../modules/examples/examples.routes';
 import ROUTE_BANK_ACCOUNTS from '../modules/bank-accounts/bank-account.routes'
 import ROUTE_CREDIT_CARDS from '../modules/credit-cards/credit-card.routes'
+import ROUTE_CATEGORIES from '@/modules/categories/category.routes'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -15,6 +16,7 @@ const routes: RouteRecordRaw[] = [
       ...ROUTE_DOMAINS,
       ...ROUTE_BANK_ACCOUNTS,
       ...ROUTE_CREDIT_CARDS,
+      ...ROUTE_CATEGORIES,
     ],
   },
 
