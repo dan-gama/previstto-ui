@@ -140,7 +140,7 @@
 import { onMounted, ref } from 'vue'
 import type { QTableColumn } from 'quasar'
 import { CreditCardList } from '../models/credit-card.model'
-import { creditCardService } from '../services/credit-card-service'
+import { creditCardService } from '../services/credit-card.service'
 
 const loading = ref(false)
 const filter = ref('')

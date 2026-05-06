@@ -110,7 +110,7 @@
               </div>
             </q-td>
 
-            <q-td key="budget" :props="props">
+            <q-td key="forecast" :props="props">
               <div class="text-weight-medium">
                 {{ formatCurrency(getCategoryBudget(props.row)) }}
               </div>
@@ -204,7 +204,7 @@
 
             <q-td>
               <div class="text-weight-medium">
-                {{ formatCurrency(child.budget) }}
+                {{ formatCurrency(child.forecast) }}
               </div>
             </q-td>
 
@@ -255,7 +255,7 @@
           </q-tr>
         </template>
 
-        <template #bottom-row>
+        <template #bottom-row v-if="rows.length > 0">
           <q-tr class="total-row">
             <q-td />
             <q-td class="text-weight-bold">Total planejado</q-td>
@@ -288,26 +288,22 @@
 
         <q-card-section class="dialog-body">
           <q-form class="row q-col-gutter-md">
-            <div class="col-12">
+            <div class="col-12 col-md-6">
               <q-input
                 v-model="form.name"
                 outlined
                 label="Nome"
                 class="app-field"
-                :rules="[required('Informe o nome')]"
+                :rules="[required()]"
               />
             </div>
 
-            <div class="col-12">
-              <q-input
-                v-model.number="form.budget"
-                outlined
-                type="number"
-                prefix="R$"
-                label="Previsão de gasto"
+            <div class="col-12 col-md-6">
+              <money-input
+                v-model="form.forecast"
+                label="Previsão de gasto (R$)"
                 class="app-field"
-                :disable="isCategoryWithChildren"
-                :hint="budgetHint"
+                :rules="[decimalGreaterThanZero()]"
               />
             </div>
 
@@ -320,9 +316,9 @@
                 use-input
                 new-value-mode="add-unique"
                 label="Tags disponíveis"
-                :options="form.tags"
                 class="app-field"
                 hint="As subcategorias herdam as tags cadastradas aqui"
+                :options="form.tags"
                 @new-value="onNewTag"
               >
                 <template #prepend>
@@ -377,120 +373,113 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import type { QTableColumn } from 'quasar'
 import { Notify } from 'quasar'
+import { CategoryForm, CategoryItem } from '../models/category.model'
+import { categoryService } from '../services/category.service'
+import { SharedRules } from '@/shared/domain/validation/form-rules'
+import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 
-type CategoryNodeType = 'category' | 'subcategory'
-
-interface CategoryItem {
-  id: string
-  name: string
-  type: CategoryNodeType
-  parentId: string | null
-  budget: number
-  active: boolean
-  tags: string[]
-}
-
-interface CategoryForm {
-  id: string | null
-  parentId: string | null
-  type: CategoryNodeType
-  name: string
-  budget: number | null
-  active: boolean
-  tags: string[]
-}
-
+const { required, decimalGreaterThanZero } = SharedRules;
 const filter = ref('')
 const formDialog = ref(false)
 const expanded = ref<string[]>(['1', '2'])
 const selectedCategory = ref<CategoryItem | null>(null)
 
 const rows = ref<CategoryItem[]>([
-  {
-    id: '1',
-    name: 'Família',
-    type: 'category',
-    parentId: null,
-    budget: 0,
-    active: true,
-    tags: ['alimentação', 'mercado', 'delivery', 'farmácia', 'educação', 'transporte'],
-  },
-  { id: '1-1', name: 'Geral', type: 'subcategory', parentId: '1', budget: 800, active: true, tags: [] },
-  { id: '1-2', name: 'Danilo', type: 'subcategory', parentId: '1', budget: 700, active: true, tags: [] },
-  { id: '1-3', name: 'Adriana', type: 'subcategory', parentId: '1', budget: 700, active: true, tags: [] },
-  { id: '1-4', name: 'Lucas', type: 'subcategory', parentId: '1', budget: 500, active: true, tags: [] },
+  // {
+  //   id: '1',
+  //   name: 'Veículos',
+  //   type: 'category',
+  //   parentId: null,
+  //   forecast: 0,
+  //   active: true,
+  //   tags: ['manutenção', 'combustível', 'financiamento'],
+  // },
 
-  {
-    id: '2',
-    name: 'Automóvel',
-    type: 'category',
-    parentId: null,
-    budget: 0,
-    active: true,
-    tags: ['combustível', 'manutenção', 'seguro', 'estacionamento', 'pedágio'],
-  },
-  { id: '2-1', name: 'Carro principal', type: 'subcategory', parentId: '2', budget: 1200, active: true, tags: [] },
-  { id: '2-2', name: 'Moto', type: 'subcategory', parentId: '2', budget: 450, active: true, tags: [] },
+  // {
+  //   id: '1',
+  //   name: 'Família',
+  //   type: 'category',
+  //   parentId: null,
+  //   budget: 0,
+  //   active: true,
+  //   tags: ['alimentação', 'mercado', 'delivery', 'farmácia', 'educação', 'transporte'],
+  // },
+  // { id: '1-1', name: 'Geral', type: 'subcategory', parentId: '1', budget: 800, active: true, tags: [] },
+  // { id: '1-2', name: 'Danilo', type: 'subcategory', parentId: '1', budget: 700, active: true, tags: [] },
+  // { id: '1-3', name: 'Adriana', type: 'subcategory', parentId: '1', budget: 700, active: true, tags: [] },
+  // { id: '1-4', name: 'Lucas', type: 'subcategory', parentId: '1', budget: 500, active: true, tags: [] },
 
-  {
-    id: '3',
-    name: 'Pets',
-    type: 'category',
-    parentId: null,
-    budget: 0,
-    active: true,
-    tags: ['ração', 'veterinário', 'banho e tosa', 'medicamentos'],
-  },
-  { id: '3-1', name: 'Geral', type: 'subcategory', parentId: '3', budget: 300, active: true, tags: [] },
-  { id: '3-2', name: 'Veterinário', type: 'subcategory', parentId: '3', budget: 250, active: true, tags: [] },
+  // {
+  //   id: '2',
+  //   name: 'Automóvel',
+  //   type: 'category',
+  //   parentId: null,
+  //   budget: 0,
+  //   active: true,
+  //   tags: ['combustível', 'manutenção', 'seguro', 'estacionamento', 'pedágio'],
+  // },
+  // { id: '2-1', name: 'Carro principal', type: 'subcategory', parentId: '2', budget: 1200, active: true, tags: [] },
+  // { id: '2-2', name: 'Moto', type: 'subcategory', parentId: '2', budget: 450, active: true, tags: [] },
 
-  {
-    id: '4',
-    name: 'Casa',
-    type: 'category',
-    parentId: null,
-    budget: 0,
-    active: true,
-    tags: ['água', 'energia', 'internet', 'manutenção', 'limpeza'],
-  },
-  { id: '4-1', name: 'Contas fixas', type: 'subcategory', parentId: '4', budget: 950, active: true, tags: [] },
-  { id: '4-2', name: 'Manutenção', type: 'subcategory', parentId: '4', budget: 400, active: true, tags: [] },
+  // {
+  //   id: '3',
+  //   name: 'Pets',
+  //   type: 'category',
+  //   parentId: null,
+  //   budget: 0,
+  //   active: true,
+  //   tags: ['ração', 'veterinário', 'banho e tosa', 'medicamentos'],
+  // },
+  // { id: '3-1', name: 'Geral', type: 'subcategory', parentId: '3', budget: 300, active: true, tags: [] },
+  // { id: '3-2', name: 'Veterinário', type: 'subcategory', parentId: '3', budget: 250, active: true, tags: [] },
 
-  {
-    id: '5',
-    name: 'Cartões de crédito',
-    type: 'category',
-    parentId: null,
-    budget: 0,
-    active: true,
-    tags: ['assinaturas', 'parcelados', 'compras online', 'serviços'],
-  },
-  { id: '5-1', name: 'Nubank', type: 'subcategory', parentId: '5', budget: 1800, active: true, tags: [] },
-  { id: '5-2', name: 'Itaú', type: 'subcategory', parentId: '5', budget: 1200, active: true, tags: [] },
-  { id: '5-3', name: 'XP', type: 'subcategory', parentId: '5', budget: 900, active: false, tags: [] },
+  // {
+  //   id: '4',
+  //   name: 'Casa',
+  //   type: 'category',
+  //   parentId: null,
+  //   budget: 0,
+  //   active: true,
+  //   tags: ['água', 'energia', 'internet', 'manutenção', 'limpeza'],
+  // },
+  // { id: '4-1', name: 'Contas fixas', type: 'subcategory', parentId: '4', budget: 950, active: true, tags: [] },
+  // { id: '4-2', name: 'Manutenção', type: 'subcategory', parentId: '4', budget: 400, active: true, tags: [] },
 
-  {
-    id: '6',
-    name: 'Lazer',
-    type: 'category',
-    parentId: null,
-    budget: 600,
-    active: true,
-    tags: ['cinema', 'restaurante', 'viagem', 'eventos'],
-  },
+  // {
+  //   id: '5',
+  //   name: 'Cartões de crédito',
+  //   type: 'category',
+  //   parentId: null,
+  //   budget: 0,
+  //   active: true,
+  //   tags: ['assinaturas', 'parcelados', 'compras online', 'serviços'],
+  // },
+  // { id: '5-1', name: 'Nubank', type: 'subcategory', parentId: '5', budget: 1800, active: true, tags: [] },
+  // { id: '5-2', name: 'Itaú', type: 'subcategory', parentId: '5', budget: 1200, active: true, tags: [] },
+  // { id: '5-3', name: 'XP', type: 'subcategory', parentId: '5', budget: 900, active: false, tags: [] },
 
-  {
-    id: '7',
-    name: 'Saúde',
-    type: 'category',
-    parentId: null,
-    budget: 750,
-    active: true,
-    tags: ['consulta', 'exames', 'farmácia', 'academia'],
-  },
+  // {
+  //   id: '6',
+  //   name: 'Lazer',
+  //   type: 'category',
+  //   parentId: null,
+  //   budget: 600,
+  //   active: true,
+  //   tags: ['cinema', 'restaurante', 'viagem', 'eventos'],
+  // },
+
+  // {
+  //   id: '7',
+  //   name: 'Saúde',
+  //   type: 'category',
+  //   parentId: null,
+  //   budget: 750,
+  //   active: true,
+  //   tags: ['consulta', 'exames', 'farmácia', 'academia'],
+  // },
 ])
 
 const form = ref<CategoryForm>({
@@ -498,7 +487,7 @@ const form = ref<CategoryForm>({
   parentId: null,
   type: 'category',
   name: '',
-  budget: null,
+  forecast: 0,
   active: true,
   tags: [],
 })
@@ -506,7 +495,7 @@ const form = ref<CategoryForm>({
 const columns: QTableColumn[] = [
   { name: 'expand', label: '', field: 'expand', align: 'left' },
   { name: 'name', label: 'Categoria / Subcategoria', field: 'name', align: 'left', sortable: true },
-  { name: 'budget', label: 'Previsão', field: 'budget', align: 'left', sortable: true },
+  { name: 'forecast', label: 'Previsão', field: 'forecast', align: 'left', sortable: true },
   { name: 'tags', label: 'Tags da categoria', field: 'tags', align: 'left' },
   { name: 'active', label: 'Status', field: 'active', align: 'left', sortable: true },
   { name: 'actions', label: 'Ações', field: 'actions', align: 'center', sortable: false },
@@ -562,8 +551,14 @@ const formSubtitle = computed(() => {
   return 'Cadastre a previsão da subcategoria'
 })
 
-function required(message: string) {
-  return (value: string) => !!value || message
+async function loadCategories() {
+  // loading.value = true
+
+  try {
+    rows.value = await categoryService.findAll();
+  } catch (error) {
+    // loading.value = false
+  }
 }
 
 function formatCurrency(value: number) {
@@ -581,10 +576,10 @@ function getCategoryBudget(category: CategoryItem) {
   const children = getChildren(category.id)
 
   if (children.length) {
-    return children.reduce((total, child) => total + child.budget, 0)
+    return children.reduce((total, child) => total + child.forecast, 0)
   }
 
-  return category.budget
+  return category.forecast
 }
 
 function selectCategory(row: CategoryItem) {
@@ -597,7 +592,7 @@ function newCategory() {
     parentId: null,
     type: 'category',
     name: '',
-    budget: null,
+    forecast: 0,
     active: true,
     tags: [],
   }
@@ -619,7 +614,7 @@ function newSubcategory() {
     parentId: selectedCategory.value.id,
     type: 'subcategory',
     name: '',
-    budget: null,
+    forecast: 0,
     active: true,
     tags: [],
   }
@@ -639,7 +634,7 @@ function editRow(row: CategoryItem) {
     parentId: row.parentId,
     type: row.type,
     name: row.name,
-    budget: row.budget,
+    forecast: row.forecast,
     active: row.active,
     tags: [...row.tags],
   }
@@ -676,6 +671,10 @@ function onSubmit() {
 
   formDialog.value = false
 }
+
+onMounted(() => {
+  loadCategories();
+})
 </script>
 
 <style lang="scss" scoped>
