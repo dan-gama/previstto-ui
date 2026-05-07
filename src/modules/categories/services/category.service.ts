@@ -1,7 +1,7 @@
-import http from "@/shared/infrastructure/http/http"
-import { CategoryItem } from "../models/category.model"
-import { ApiResponse } from "@/shared/infrastructure/interfaces/ApiResponse";
-import { CreateCategoryCommand } from "../models/category.command";
+import http from '@/shared/infrastructure/http/http'
+import { CategoryItem } from '../models/category.model'
+import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse';
+import { CreateCategoryCommand } from '../models/category.command';
 
 const module = 'categories'
 

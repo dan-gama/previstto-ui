@@ -20,13 +20,15 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { computed } from 'vue';
 import { Money3Component as money3 } from 'v-money3';
 
 interface Props {
   modelValue: number;
   label?: string;
-  rules?: any[];
+  rules?: any[] ;
   disable?: boolean
 }
 

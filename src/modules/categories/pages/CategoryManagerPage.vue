@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 <template>
   <q-page class="domain-page q-pa-md">
     <div class="page-header q-mb-md">
@@ -511,19 +512,19 @@ const parentCategory = computed(() => {
   return rows.value.find((item) => item.id === form.value.parentId) || null
 })
 
-const isCategoryWithChildren = computed(() => {
-  if (form.value.type !== 'category' || !form.value.id) return false
+// const isCategoryWithChildren = computed(() => {
+//   if (form.value.type !== 'category' || !form.value.id) return false
 
-  return getChildren(form.value.id).length > 0
-})
+//   return getChildren(form.value.id).length > 0
+// })
 
-const budgetHint = computed(() => {
-  if (isCategoryWithChildren.value) {
-    return 'Categoria com subcategorias usa previsão calculada pela soma das subcategorias'
-  }
+// const budgetHint = computed(() => {
+//   if (isCategoryWithChildren.value) {
+//     return 'Categoria com subcategorias usa previsão calculada pela soma das subcategorias'
+//   }
 
-  return 'Informe a previsão quando a categoria não possuir subcategorias'
-})
+//   return 'Informe a previsão quando a categoria não possuir subcategorias'
+// })
 
 const totalBudget = computed(() => {
   return categoryRows.value.reduce((total, category) => {
