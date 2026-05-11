@@ -372,35 +372,52 @@
           />
 
           <q-btn
+            flat
+            round
+            dense
+            icon="delete"
             color="negative"
-            no-caps
-            unelevated
-            label="Excluir"
-            class="save-btn"
-            v-if="model.id"
-            :loading="saving"
-            :disable="isCategoryWithChildren"
-            @click="onDelete"
-          />
+            class="action-btn"
+            v-if="model.id && !isCategoryWithChildren"
+            @click="onDelete(model.id as string)"
+          >
+            <q-tooltip>Excluir</q-tooltip>
+          </q-btn>
+
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <ConfirmeDeleteDialog
+      v-model="deleteDialog"
+      :loading="deleting"
+      title="Excluir categoria"
+      message="Tem certeza que deseja excluir esta categoria?"
+      description="Todas as informações vinculadas a este registro poderão ser afetadas."
+      confirm-label="Excluir"
+      @confirm="confirmDelete"
+    />
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import type { QTableColumn } from 'quasar'
-import { Dialog, Notify } from 'quasar'
 import { CategoryForm, CategoryItem } from '../models/category.model'
 import { categoryService } from '../services/category.service'
 import { SharedRules } from '@/shared/domain/validation/form-rules'
-import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 import { CategoryMapper } from '../mappers/category.mapper'
 import { notify } from '@/shared/utils/notify.utils'
+import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
+import ConfirmeDeleteDialog from '@/shared/components/ConfirmDeleteDialog/ConfirmDeleteDialog.vue'
+
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar();
+
+const deleteDialog = ref(false);
+const deleting = ref(false);
+const selectedDeleteId = ref<string | null>(null);
 
 const { required, decimalGreaterThanZero } = SharedRules;
 const saving = ref(false);
@@ -532,10 +549,7 @@ function newCategory() {
 
 function newSubcategory() {
   if (!selectedCategory.value) {
-    Notify.create({
-      type: 'warning',
-      message: 'Selecione uma categoria para criar uma subcategoria.',
-    })
+    notify.warning('Selecione uma categoria para criar uma subcategoria')
     return
   }
 
@@ -627,29 +641,53 @@ async function onSubmit() {
   }
 }
 
-async function onDelete() {
-  $q.dialog({
-    title: 'Confirmar exclusão',
-    message: 'Tem certeza que deseja excluir este item? Esta ação não poderá ser desfeita.',
-    persistent: true,
-    ok: {
-      label: 'Excluir',
-      color: 'negative',
-      unelevated: true,
-      nocaps: true,
-    },
-    cancel: {
-      label: 'Cancelar',
-      color: 'grey-7',
-      flat: true,
-    },
-  }).onOk(async () => {
-    await categoryService.delete(model.value.id as string);
-    loadCategories()
+async function onDelete(id: string) {
+  selectedDeleteId.value = id;
+  deleteDialog.value = true;
+}
+
+async function confirmDelete() {
+  if (!selectedDeleteId.value) return;
+
+  deleting.value = true;
+
+  try {
+    await categoryService.delete(selectedDeleteId.value);
+
+    await loadCategories();
 
     formDialog.value = false;
-  })
+    deleteDialog.value = false;
+    selectedDeleteId.value = null;
+
+  } finally {
+    deleting.value = false;
+  }
 }
+
+// async function onDelete() {
+//   $q.dialog({
+//     title: 'Confirmar exclusão',
+//     message: 'Tem certeza que deseja excluir este item? Esta ação não poderá ser desfeita.',
+//     persistent: true,
+//     ok: {
+//       label: 'Excluir',
+//       color: 'negative',
+//       unelevated: true,
+//       nocaps: true,
+//     },
+//     cancel: {
+//       label: 'Cancelar',
+//       color: 'grey-7',
+//       flat: true,
+//     },
+//   }).onOk(async () => {
+//     await categoryService.delete(model.value.id as string);
+//     loadCategories()
+
+//     formDialog.value = false;
+//   })
+// }
 
 onMounted(() => {
   loadCategories();
