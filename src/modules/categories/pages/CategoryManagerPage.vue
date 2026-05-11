@@ -288,10 +288,10 @@
         <q-separator />
 
         <q-card-section class="dialog-body">
-          <q-form class="row q-col-gutter-md">
+          <q-form class="row q-col-gutter-md" @submit.prevent="onSubmit" ref="form" greedy>
             <div class="col-12 col-md-6">
               <q-input
-                v-model="form.name"
+                v-model="model.name"
                 outlined
                 label="Nome"
                 class="app-field"
@@ -301,16 +301,16 @@
 
             <div class="col-12 col-md-6">
               <money-input
-                v-model="form.forecast"
+                v-model="model.forecast"
                 label="Previsão de gasto (R$)"
                 class="app-field"
                 :rules="[decimalGreaterThanZero()]"
               />
             </div>
 
-            <div class="col-12" v-if="form.type === 'category'">
+            <div class="col-12" v-if="model.type === 'category'">
               <q-select
-                v-model="form.tags"
+                v-model="model.tags"
                 outlined
                 multiple
                 use-chips
@@ -319,7 +319,7 @@
                 label="Tags disponíveis"
                 class="app-field"
                 hint="As subcategorias herdam as tags cadastradas aqui"
-                :options="form.tags"
+                :options="model.tags"
                 @new-value="onNewTag"
               >
                 <template #prepend>
@@ -341,7 +341,7 @@
 
             <div class="col-12">
               <q-toggle
-                v-model="form.active"
+                v-model="model.active"
                 label="Registro ativo"
                 color="primary"
               />
@@ -363,6 +363,7 @@
             color="primary"
             no-caps
             unelevated
+            :loading="saving"
             label="Salvar"
             class="save-btn"
             @click="onSubmit"
@@ -381,8 +382,12 @@ import { CategoryForm, CategoryItem } from '../models/category.model'
 import { categoryService } from '../services/category.service'
 import { SharedRules } from '@/shared/domain/validation/form-rules'
 import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
+import { CategoryMapper } from '../mappers/category.mapper'
+import { notify } from '@/shared/utils/notify.utils'
 
 const { required, decimalGreaterThanZero } = SharedRules;
+const saving = ref(false);
+const form = ref();
 const filter = ref('')
 const formDialog = ref(false)
 const expanded = ref<string[]>(['1', '2'])
@@ -483,7 +488,7 @@ const rows = ref<CategoryItem[]>([
   // },
 ])
 
-const form = ref<CategoryForm>({
+const model = ref<CategoryForm>({
   id: null,
   parentId: null,
   type: 'category',
@@ -507,9 +512,9 @@ const categoryRows = computed(() => {
 })
 
 const parentCategory = computed(() => {
-  if (!form.value.parentId) return null
+  if (!model.value.parentId) return null
 
-  return rows.value.find((item) => item.id === form.value.parentId) || null
+  return rows.value.find((item) => item.id === model.value.parentId) || null
 })
 
 // const isCategoryWithChildren = computed(() => {
@@ -533,19 +538,19 @@ const totalBudget = computed(() => {
 })
 
 const formTitle = computed(() => {
-  if (!form.value.id) {
-    return form.value.type === 'category'
+  if (!model.value.id) {
+    return model.value.type === 'category'
       ? 'Nova categoria'
       : 'Nova subcategoria'
   }
 
-  return form.value.type === 'category'
+  return model.value.type === 'category'
     ? 'Editar categoria'
     : 'Editar subcategoria'
 })
 
 const formSubtitle = computed(() => {
-  if (form.value.type === 'category') {
+  if (model.value.type === 'category') {
     return 'Cadastre a categoria principal e as tags disponíveis'
   }
 
@@ -588,7 +593,7 @@ function selectCategory(row: CategoryItem) {
 }
 
 function newCategory() {
-  form.value = {
+  model.value = {
     id: null,
     parentId: null,
     type: 'category',
@@ -610,7 +615,7 @@ function newSubcategory() {
     return
   }
 
-  form.value = {
+  model.value = {
     id: null,
     parentId: selectedCategory.value.id,
     type: 'subcategory',
@@ -630,7 +635,7 @@ function editRow(row: CategoryItem) {
     selectedCategory.value = rows.value.find((item) => item.id === row.parentId) || null
   }
 
-  form.value = {
+  model.value = {
     id: row.id,
     parentId: row.parentId,
     type: row.type,
@@ -647,7 +652,7 @@ function onNewTag(
   value: string,
   done: (item?: string, mode?: 'add' | 'add-unique' | 'toggle') => void,
 ) {
-  if (form.value.type !== 'category') {
+  if (model.value.type !== 'category') {
     done()
     return
   }
@@ -662,20 +667,39 @@ function onNewTag(
   done(normalized, 'add-unique')
 }
 
-function onSubmit() {
-  if (!form.value.name) return
+async function onSubmit() {
+  const valid = await form.value.validate(true);
+  if (!valid) return
 
-  Notify.create({
-    type: 'positive',
-    message: 'Categoria salva com sucesso.',
-  })
+  saving.value = true;
 
-  formDialog.value = false
+  try {
+    model.value.forecast = Number(model.value.forecast)
+
+    // console.log('model:', CategoryMapper.toCreate(model.value));
+
+    await categoryService.create(CategoryMapper.toCreate(model.value));
+    notify.success('Categoria criada com sucesso');
+
+    // Atualiza a lista
+    loadCategories();
+
+  } finally { saving.value = false }
+
+  // if (!model.value.name) return
+
+  // Notify.create({
+  //   type: 'positive',
+  //   message: 'Categoria salva com sucesso.',
+  // })
+
+  // formDialog.value = false
 }
 
 onMounted(() => {
   loadCategories();
-})
+});
+
 </script>
 
 <style lang="scss" scoped>

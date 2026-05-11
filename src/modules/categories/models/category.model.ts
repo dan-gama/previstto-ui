@@ -1,4 +1,5 @@
-type CategoryNodeType = 'category' | 'subcategory'
+import { CategoryNodeType } from './category-node-type.type'
+
 
 export interface CategoryForm {
   id: string | null
