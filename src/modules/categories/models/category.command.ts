@@ -9,4 +9,9 @@ export type CreateCategoryCommand = {
   active: boolean,
   tags: string[] | null,
 }
-export type UpdateCategoryCommand = CategoryForm
+export type UpdateCategoryCommand = {
+  name: string,
+  forecast: number,
+  active: boolean,
+  tags: string[] | null,
+}

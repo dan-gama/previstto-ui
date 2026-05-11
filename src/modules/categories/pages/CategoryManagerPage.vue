@@ -304,6 +304,8 @@
                 v-model="model.forecast"
                 label="Previsão de gasto (R$)"
                 class="app-field"
+                :disable="isCategoryWithChildren"
+                :hint="budgetHint"
                 :rules="[decimalGreaterThanZero()]"
               />
             </div>
@@ -319,7 +321,7 @@
                 label="Tags disponíveis"
                 class="app-field"
                 hint="As subcategorias herdam as tags cadastradas aqui"
-                :options="model.tags"
+                :options!="model.tags"
                 @new-value="onNewTag"
               >
                 <template #prepend>
@@ -368,6 +370,18 @@
             class="save-btn"
             @click="onSubmit"
           />
+
+          <q-btn
+            color="negative"
+            no-caps
+            unelevated
+            label="Excluir"
+            class="save-btn"
+            v-if="model.id"
+            :loading="saving"
+            :disable="isCategoryWithChildren"
+            @click="onDelete"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -377,13 +391,16 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import type { QTableColumn } from 'quasar'
-import { Notify } from 'quasar'
+import { Dialog, Notify } from 'quasar'
 import { CategoryForm, CategoryItem } from '../models/category.model'
 import { categoryService } from '../services/category.service'
 import { SharedRules } from '@/shared/domain/validation/form-rules'
 import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 import { CategoryMapper } from '../mappers/category.mapper'
 import { notify } from '@/shared/utils/notify.utils'
+import { useQuasar } from 'quasar'
+
+const $q = useQuasar();
 
 const { required, decimalGreaterThanZero } = SharedRules;
 const saving = ref(false);
@@ -393,100 +410,7 @@ const formDialog = ref(false)
 const expanded = ref<string[]>(['1', '2'])
 const selectedCategory = ref<CategoryItem | null>(null)
 
-const rows = ref<CategoryItem[]>([
-  // {
-  //   id: '1',
-  //   name: 'Veículos',
-  //   type: 'category',
-  //   parentId: null,
-  //   forecast: 0,
-  //   active: true,
-  //   tags: ['manutenção', 'combustível', 'financiamento'],
-  // },
-
-  // {
-  //   id: '1',
-  //   name: 'Família',
-  //   type: 'category',
-  //   parentId: null,
-  //   budget: 0,
-  //   active: true,
-  //   tags: ['alimentação', 'mercado', 'delivery', 'farmácia', 'educação', 'transporte'],
-  // },
-  // { id: '1-1', name: 'Geral', type: 'subcategory', parentId: '1', budget: 800, active: true, tags: [] },
-  // { id: '1-2', name: 'Danilo', type: 'subcategory', parentId: '1', budget: 700, active: true, tags: [] },
-  // { id: '1-3', name: 'Adriana', type: 'subcategory', parentId: '1', budget: 700, active: true, tags: [] },
-  // { id: '1-4', name: 'Lucas', type: 'subcategory', parentId: '1', budget: 500, active: true, tags: [] },
-
-  // {
-  //   id: '2',
-  //   name: 'Automóvel',
-  //   type: 'category',
-  //   parentId: null,
-  //   budget: 0,
-  //   active: true,
-  //   tags: ['combustível', 'manutenção', 'seguro', 'estacionamento', 'pedágio'],
-  // },
-  // { id: '2-1', name: 'Carro principal', type: 'subcategory', parentId: '2', budget: 1200, active: true, tags: [] },
-  // { id: '2-2', name: 'Moto', type: 'subcategory', parentId: '2', budget: 450, active: true, tags: [] },
-
-  // {
-  //   id: '3',
-  //   name: 'Pets',
-  //   type: 'category',
-  //   parentId: null,
-  //   budget: 0,
-  //   active: true,
-  //   tags: ['ração', 'veterinário', 'banho e tosa', 'medicamentos'],
-  // },
-  // { id: '3-1', name: 'Geral', type: 'subcategory', parentId: '3', budget: 300, active: true, tags: [] },
-  // { id: '3-2', name: 'Veterinário', type: 'subcategory', parentId: '3', budget: 250, active: true, tags: [] },
-
-  // {
-  //   id: '4',
-  //   name: 'Casa',
-  //   type: 'category',
-  //   parentId: null,
-  //   budget: 0,
-  //   active: true,
-  //   tags: ['água', 'energia', 'internet', 'manutenção', 'limpeza'],
-  // },
-  // { id: '4-1', name: 'Contas fixas', type: 'subcategory', parentId: '4', budget: 950, active: true, tags: [] },
-  // { id: '4-2', name: 'Manutenção', type: 'subcategory', parentId: '4', budget: 400, active: true, tags: [] },
-
-  // {
-  //   id: '5',
-  //   name: 'Cartões de crédito',
-  //   type: 'category',
-  //   parentId: null,
-  //   budget: 0,
-  //   active: true,
-  //   tags: ['assinaturas', 'parcelados', 'compras online', 'serviços'],
-  // },
-  // { id: '5-1', name: 'Nubank', type: 'subcategory', parentId: '5', budget: 1800, active: true, tags: [] },
-  // { id: '5-2', name: 'Itaú', type: 'subcategory', parentId: '5', budget: 1200, active: true, tags: [] },
-  // { id: '5-3', name: 'XP', type: 'subcategory', parentId: '5', budget: 900, active: false, tags: [] },
-
-  // {
-  //   id: '6',
-  //   name: 'Lazer',
-  //   type: 'category',
-  //   parentId: null,
-  //   budget: 600,
-  //   active: true,
-  //   tags: ['cinema', 'restaurante', 'viagem', 'eventos'],
-  // },
-
-  // {
-  //   id: '7',
-  //   name: 'Saúde',
-  //   type: 'category',
-  //   parentId: null,
-  //   budget: 750,
-  //   active: true,
-  //   tags: ['consulta', 'exames', 'farmácia', 'academia'],
-  // },
-])
+const rows = ref<CategoryItem[]>([])
 
 const model = ref<CategoryForm>({
   id: null,
@@ -517,19 +441,19 @@ const parentCategory = computed(() => {
   return rows.value.find((item) => item.id === model.value.parentId) || null
 })
 
-// const isCategoryWithChildren = computed(() => {
-//   if (form.value.type !== 'category' || !form.value.id) return false
+const isCategoryWithChildren = computed(() => {
+  if (model.value.type !== 'category' || !model.value.id) return false
 
-//   return getChildren(form.value.id).length > 0
-// })
+  return getChildren(model.value.id).length > 0
+})
 
-// const budgetHint = computed(() => {
-//   if (isCategoryWithChildren.value) {
-//     return 'Categoria com subcategorias usa previsão calculada pela soma das subcategorias'
-//   }
+const budgetHint = computed(() => {
+  if (isCategoryWithChildren.value) {
+    return 'Categoria com subcategorias usa previsão calculada pela soma das subcategorias'
+  }
 
-//   return 'Informe a previsão quando a categoria não possuir subcategorias'
-// })
+  return 'Informe a previsão quando a categoria não possuir subcategorias'
+})
 
 const totalBudget = computed(() => {
   return categoryRows.value.reduce((total, category) => {
@@ -622,15 +546,17 @@ function newSubcategory() {
     name: '',
     forecast: 0,
     active: true,
-    tags: [],
+    tags: null,
   }
 
   formDialog.value = true
 }
 
 function editRow(row: CategoryItem) {
+  let tags: string[] | null = null;
   if (row.type === 'category') {
     selectedCategory.value = row
+    tags = [...row.tags as string[]];
   } else {
     selectedCategory.value = rows.value.find((item) => item.id === row.parentId) || null
   }
@@ -642,7 +568,7 @@ function editRow(row: CategoryItem) {
     name: row.name,
     forecast: row.forecast,
     active: row.active,
-    tags: [...row.tags],
+    tags: tags,
   }
 
   formDialog.value = true
@@ -674,26 +600,55 @@ async function onSubmit() {
   saving.value = true;
 
   try {
+    // Formata o campo decimal
     model.value.forecast = Number(model.value.forecast)
 
-    // console.log('model:', CategoryMapper.toCreate(model.value));
+    // Insert
+    if (!model.value.id) {
+      // Verifica se é categoria ou subcategoria
+      if (model.value.type === 'category') {
+        await categoryService.create(CategoryMapper.toCreate(model.value));
+      } else {
+        await categoryService.createSubCategory(CategoryMapper.toCreate(model.value));
+      }
+    // Update
+    } else {
+      await categoryService.update(model.value.id, CategoryMapper.toUpdate(model.value));
+    }
 
-    await categoryService.create(CategoryMapper.toCreate(model.value));
     notify.success('Categoria criada com sucesso');
 
     // Atualiza a lista
     loadCategories();
 
-  } finally { saving.value = false }
+  } finally {
+    saving.value = false;
+    formDialog.value = false;
+  }
+}
 
-  // if (!model.value.name) return
+async function onDelete() {
+  $q.dialog({
+    title: 'Confirmar exclusão',
+    message: 'Tem certeza que deseja excluir este item? Esta ação não poderá ser desfeita.',
+    persistent: true,
+    ok: {
+      label: 'Excluir',
+      color: 'negative',
+      unelevated: true,
+      nocaps: true,
+    },
+    cancel: {
+      label: 'Cancelar',
+      color: 'grey-7',
+      flat: true,
+    },
+  }).onOk(async () => {
+    await categoryService.delete(model.value.id as string);
+    loadCategories()
 
-  // Notify.create({
-  //   type: 'positive',
-  //   message: 'Categoria salva com sucesso.',
-  // })
-
-  // formDialog.value = false
+    formDialog.value = false;
+  })
 }
 
 onMounted(() => {
@@ -734,7 +689,7 @@ onMounted(() => {
 }
 
 .form-dialog-card {
-  width: 720px;
+  width: 1024px;
   max-width: 95vw;
   border-radius: 18px;
   overflow: hidden;
