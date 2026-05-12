@@ -23,4 +23,8 @@ export const creditCardService = {
     const { data } = await http.get<ApiResponse<CreditCardForm>>(`${module}/${id}`)
     return data.data;
   },
+
+  async delete(id: string): Promise<void> {
+    await http.delete(`${module}/${id}`);
+  }
 }

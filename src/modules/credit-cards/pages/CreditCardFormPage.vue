@@ -165,8 +165,31 @@
           @click="onSubmit"
           class="save-btn"
         />
+
+        <q-btn
+          flat
+          round
+          dense
+          icon="delete"
+          color="negative"
+          class="action-btn"
+          v-if="isEditMode"
+          @click="onDelete(route.params.id as string)"
+        >
+          <q-tooltip>Excluir</q-tooltip>
+        </q-btn>
       </q-card-actions>
     </q-card>
+
+    <confirm-delete-dialog
+      v-model="deleteDialog"
+      :loading="deleting"
+      title="Excluir cartão de crédito"
+      message="Tem certeza que deseja excluir este cartão de crédito?"
+      description="Todas as informações vinculadas a este registro poderão ser afetadas."
+      confirm-label="Excluir"
+      @confirm="confirmDelete"
+    />
   </q-page>
 </template>
 
@@ -182,9 +205,14 @@ import { CreditCardForm } from '../models/credit-card.model'
 import { creditCardService } from '../services/credit-card.service'
 import { CreditCardMapper } from '../mappers/credit-card.mapper'
 import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
+import ConfirmDeleteDialog from '@/shared/components/ConfirmDeleteDialog/ConfirmDeleteDialog.vue'
 
 const { filterFn } = useSelectFilter();
 const { decimalGreaterThanZero, required, exactLength } = SharedRules;
+
+const deleteDialog = ref(false);
+const deleting = ref(false);
+const selectedDeleteId = ref<string | null>(null);
 
 const loading = ref<boolean>(false);
 const route = useRoute()
@@ -279,6 +307,33 @@ async function onSubmit() {
       name: 'credit-card-list',
     })
   } finally { saving.value = false }
+}
+
+async function onDelete(id: string) {
+  selectedDeleteId.value = id;
+  deleteDialog.value = true;
+}
+
+async function confirmDelete() {
+  if (!selectedDeleteId.value) return;
+
+  deleting.value = true;
+
+  try {
+    await creditCardService.delete(selectedDeleteId.value);
+
+    deleteDialog.value = false;
+    selectedDeleteId.value = null;
+
+    notify.success('Conta bancária excluída com sucesso');
+
+    router.push({
+      name: 'credit-card-list',
+    })
+
+  } finally {
+    deleting.value = false;
+  }
 }
 
 onMounted(() => {
