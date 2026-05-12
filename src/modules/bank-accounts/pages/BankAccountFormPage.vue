@@ -124,8 +124,31 @@
           @click="onSubmit"
           class="save-btn"
         />
+
+        <q-btn
+          flat
+          round
+          dense
+          icon="delete"
+          color="negative"
+          class="action-btn"
+          v-if="isEditMode"
+          @click="onDelete(route.params.id as string)"
+        >
+          <q-tooltip>Excluir</q-tooltip>
+        </q-btn>
       </q-card-actions>
     </q-card>
+
+    <confirm-delete-dialog
+      v-model="deleteDialog"
+      :loading="deleting"
+      title="Excluir conta bancária"
+      message="Tem certeza que deseja excluir esta conta bancária?"
+      description="Todas as informações vinculadas a este registro poderão ser afetadas."
+      confirm-label="Excluir"
+      @confirm="confirmDelete"
+    />
   </q-page>
 </template>
 
@@ -141,9 +164,14 @@ import { useSelectFilter } from '@/shared/utils/filter-select'
 import { notify } from '@/shared/utils/notify.utils'
 import { BankAccountMapper } from '../mappers/bank-account.mapper'
 import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
+import ConfirmDeleteDialog from '@/shared/components/ConfirmDeleteDialog/ConfirmDeleteDialog.vue'
 
 const { filterFn } = useSelectFilter();
 const { required } = SharedRules;
+
+const deleteDialog = ref(false);
+const deleting = ref(false);
+const selectedDeleteId = ref<string | null>(null);
 
 const loading = ref<boolean>(false);
 const route = useRoute()
@@ -232,6 +260,33 @@ async function onSubmit() {
       name: 'bank-account-list',
     })
   } finally { saving.value = false }
+}
+
+async function onDelete(id: string) {
+  selectedDeleteId.value = id;
+  deleteDialog.value = true;
+}
+
+async function confirmDelete() {
+  if (!selectedDeleteId.value) return;
+
+  deleting.value = true;
+
+  try {
+    await bankAccountService.delete(selectedDeleteId.value);
+
+    deleteDialog.value = false;
+    selectedDeleteId.value = null;
+
+    notify.success('Conta bancária excluída com sucesso');
+
+    router.push({
+      name: 'bank-account-list',
+    })
+
+  } finally {
+    deleting.value = false;
+  }
 }
 
 onMounted(() => {

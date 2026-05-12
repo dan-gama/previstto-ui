@@ -3,22 +3,28 @@ import { BankAccountList, BankAccountForm } from '../models/bank-account.model'
 import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse'
 import { CreateBankAccountCommand, UpdateBankAccountCommand } from '../models/bank-account.command'
 
+const module = 'bank-accounts';
+
 export const bankAccountService = {
   async create(payload: CreateBankAccountCommand): Promise<void> {
-    await http.post('bank-accounts', payload);
+    await http.post(module, payload);
   },
 
   async update(id: string, payload: UpdateBankAccountCommand): Promise<void> {
-    await http.patch(`bank-accounts/${id}`, payload);
+    await http.patch(`${module}/${id}`, payload);
   },
 
   async findAll(): Promise<BankAccountList[]> {
-    const { data } = await http.get<ApiResponse<BankAccountList[]>>('bank-accounts');
+    const { data } = await http.get<ApiResponse<BankAccountList[]>>(module);
     return data.data;
   },
 
   async findById(id: string): Promise<BankAccountForm | null> {
-    const { data } = await http.get<ApiResponse<BankAccountForm>>(`bank-accounts/${id}`)
+    const { data } = await http.get<ApiResponse<BankAccountForm>>(`${module}/${id}`)
     return data.data;
   },
+
+  async delete(id: string): Promise<void> {
+    await http.delete(`${module}/${id}`);
+  }
 }
