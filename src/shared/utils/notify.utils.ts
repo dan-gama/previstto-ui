@@ -5,7 +5,7 @@ export const notify = {
     Notify.create({
       type: 'positive',
       message,
-      position: 'top-right',
+      position: 'bottom',
       timeout: 2500,
     })
   },
@@ -14,7 +14,7 @@ export const notify = {
     Notify.create({
       type: 'negative',
       message,
-      position: 'top-right',
+      position: 'bottom',
       timeout: 3500,
     })
   },
@@ -23,7 +23,7 @@ export const notify = {
     Notify.create({
       type: 'warning',
       message,
-      position: 'top-right',
+      position: 'bottom',
       timeout: 3000,
     })
   },
@@ -32,7 +32,7 @@ export const notify = {
     Notify.create({
       type: 'info',
       message,
-      position: 'top-right',
+      position: 'bottom',
       timeout: 2500,
     })
   },
