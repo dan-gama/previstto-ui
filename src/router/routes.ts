@@ -2,9 +2,9 @@ import { RouteRecordRaw } from 'vue-router';
 
 import ROUTE_WEB from '../modules/web/router';
 import ROUTE_DOMAINS from '../modules/examples/examples.routes';
-import ROUTE_BANK_ACCOUNTS from '../modules/bank-accounts/bank-account.routes'
-import ROUTE_CREDIT_CARDS from '../modules/credit-cards/credit-card.routes'
-import ROUTE_CATEGORIES from '@/modules/categories/category.routes'
+import ROUTE_BANK_ACCOUNTS from '../modules/bank-accounts/bank-accounts.routes'
+import ROUTE_CREDIT_CARDS from '../modules/credit-cards/credit-cards.routes'
+import ROUTE_CATEGORIES from '@/modules/categories/categories.routes'
 
 const routes: RouteRecordRaw[] = [
   {
