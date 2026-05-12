@@ -388,7 +388,7 @@
       </q-card>
     </q-dialog>
 
-    <ConfirmeDeleteDialog
+    <confirm-delete-dialog
       v-model="deleteDialog"
       :loading="deleting"
       title="Excluir categoria"
@@ -409,11 +409,7 @@ import { SharedRules } from '@/shared/domain/validation/form-rules'
 import { CategoryMapper } from '../mappers/category.mapper'
 import { notify } from '@/shared/utils/notify.utils'
 import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
-import ConfirmeDeleteDialog from '@/shared/components/ConfirmDeleteDialog/ConfirmDeleteDialog.vue'
-
-import { useQuasar } from 'quasar'
-
-const $q = useQuasar();
+import ConfirmDeleteDialog from '@/shared/components/ConfirmDeleteDialog/ConfirmDeleteDialog.vue'
 
 const deleteDialog = ref(false);
 const deleting = ref(false);
