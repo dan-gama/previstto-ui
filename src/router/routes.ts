@@ -6,6 +6,7 @@ import ROUTE_BANK_ACCOUNTS from '../modules/bank-accounts/bank-accounts.routes'
 import ROUTE_CREDIT_CARDS from '../modules/credit-cards/credit-cards.routes'
 import ROUTE_CATEGORIES from '@/modules/categories/categories.routes'
 import ROUTE_PERSONS from '@/modules/persons/persons.routes'
+import ROUTE_AGENDA from '@/modules/agenda/agenda.routes'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -19,6 +20,7 @@ const routes: RouteRecordRaw[] = [
       ...ROUTE_CREDIT_CARDS,
       ...ROUTE_CATEGORIES,
       ...ROUTE_PERSONS,
+      ...ROUTE_AGENDA,
     ],
   },
 
