@@ -1,0 +1,75 @@
+.form-dialog-card {
+  width: 1024px;
+  max-width: 95vw;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.dialog-header {
+  padding: 22px 24px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.dialog-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at top right,
+    rgba(255, 255, 255, 0.18),
+    transparent 35%
+  );
+  pointer-events: none;
+}
+
+.dialog-header-expense {
+  background: linear-gradient(135deg, #b42318 0%, #dc2626 100%);
+}
+
+.dialog-header-income {
+  background: linear-gradient(135deg, #18794e 0%, #16a34a 100%);
+}
+
+.dialog-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(4px);
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.dialog-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.dialog-subtitle {
+  font-size: 13px;
+  opacity: 0.9;
+  margin-top: 4px;
+  max-width: 420px;
+}
+
+.dialog-close-btn {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dialog-body {
+  padding: 28px;
+}
+
+.dialog-footer {
+  padding: 18px 22px;
+}

@@ -2,8 +2,6 @@
 <template>
   <q-page class="domain-page q-pa-md">
     <div class="page-header q-mb-md">
-
-
       <div class="row q-gutter-sm items-center">
         <q-btn-toggle
           v-model="financialType"
@@ -17,7 +15,6 @@
             { label: 'Receitas', value: 'income', icon: 'trending_up' },
           ]"
         />
-
         <q-btn
           :color="financialType === 'expense' ? 'negative' : 'positive'"
           icon="add"
@@ -27,7 +24,6 @@
           class="header-btn"
           @click="newCategory"
         />
-
         <q-btn
           outline
           :color="financialType === 'expense' ? 'negative' : 'positive'"
@@ -39,28 +35,20 @@
           @click="newSubcategory"
         />
       </div>
-
-
     </div>
-
     <q-card flat bordered class="domain-card">
       <q-card-section class="table-toolbar">
         <div class="toolbar-left">
-
           <div class="toolbar-title">
             {{ financialType === 'expense' ? 'Planejamento de despesas' : 'Planejamento de receitas' }}
           </div>
-
           <div class="toolbar-subtitle">
             {{ financialType === 'expense'
               ? 'Visualize o orçamento de despesas e expanda para ver as subcategorias'
               : 'Visualize a previsão de receitas e expanda para ver as subcategorias'
             }}
           </div>
-
-
         </div>
-
         <div class="toolbar-right">
           <q-input
             v-model="filter"
@@ -301,9 +289,43 @@
 
     <q-dialog v-model="formDialog">
       <q-card class="form-dialog-card">
-        <q-card-section class="dialog-header">
-          <div class="dialog-title">{{ formTitle }}</div>
-          <div class="dialog-subtitle">{{ formSubtitle }}</div>
+        <q-card-section
+          class="dialog-header"
+          :class="financialType === 'expense'
+            ? 'dialog-header-expense'
+            : 'dialog-header-income'"
+        >
+          <div class="row items-center justify-between no-wrap">
+            <div class="row items-center no-wrap">
+              <div class="dialog-icon">
+                <q-icon
+                  :name="model.type === 'category'
+                    ? 'folder'
+                    : 'subdirectory_arrow_right'"
+                  size="24px"
+                />
+              </div>
+
+              <div class="q-ml-md">
+                <div class="dialog-title">
+                  {{ formTitle }}
+                </div>
+
+                <div class="dialog-subtitle">
+                  {{ formSubtitle }}
+                </div>
+              </div>
+            </div>
+
+            <q-btn
+              flat
+              round
+              dense
+              icon="close"
+              class="dialog-close-btn"
+              v-close-popup
+            />
+          </div>
         </q-card-section>
 
         <q-separator />
@@ -327,28 +349,58 @@
                 class="app-field"
                 :disable="isCategoryWithChildren"
                 :hint="budgetHint"
-                :rules="[decimalGreaterThanZero()]"
+                :rules="[required()]"
               />
             </div>
 
             <div class="col-12" v-if="model.type === 'category'">
-              <q-select
-                v-model="model.tags"
-                outlined
-                multiple
-                use-chips
-                use-input
-                new-value-mode="add-unique"
-                label="Tags disponíveis"
-                class="app-field"
-                hint="As subcategorias herdam as tags cadastradas aqui"
-                :options="model.tags ?? []"
-                @new-value="onNewTag"
-              >
-                <template #prepend>
-                  <q-icon name="local_offer" />
-                </template>
-              </q-select>
+              <div class="tag-field app-field">
+                <q-input
+                  v-model="tagInput"
+                  outlined
+                  label="Tags disponíveis"
+                  hint="Digite uma tag e pressione Enter"
+                  @keyup.enter.prevent="addTag"
+                >
+                  <template #prepend>
+                    <q-icon name="local_offer" />
+                  </template>
+
+                  <template #append>
+                    <q-btn
+                      flat
+                      round
+                      dense
+                      icon="add"
+                      @click="addTag"
+                    />
+                  </template>
+                </q-input>
+
+                <div class="tag-list-box q-mt-sm">
+                <div class="tag-list-header">
+                  <q-icon name="sell" size="16px" />
+                  <span>Tags cadastradas</span>
+                </div>
+
+                <div v-if="model.tags.length" class="tag-list-content">
+                  <q-chip
+                    v-for="tag in model.tags"
+                    :key="tag"
+                    removable
+                    dense
+                    class="tag-chip"
+                    @remove="removeTag(tag)"
+                  >
+                    {{ tag }}
+                  </q-chip>
+                </div>
+
+                <div v-else class="tag-list-empty">
+                  Nenhuma tag cadastrada ainda.
+                </div>
+              </div>
+              </div>
             </div>
 
             <div class="col-12" v-else>
@@ -438,13 +490,15 @@ const deleteDialog = ref(false);
 const deleting = ref(false);
 const selectedDeleteId = ref<string | null>(null);
 
-const { required, decimalGreaterThanZero } = SharedRules;
+const { required } = SharedRules;
 const saving = ref(false);
 const form = ref();
 const filter = ref('')
 const formDialog = ref(false)
 const expanded = ref<string[]>(['1', '2'])
 const selectedCategory = ref<CategoryItem | null>(null)
+const tagOptions = ref<string[]>([])
+const tagInput = ref('');
 
 const rows = ref<CategoryItem[]>([])
 
@@ -554,6 +608,8 @@ function selectCategory(row: CategoryItem) {
 }
 
 function newCategory() {
+  tagInput.value = '';
+
   model.value = {
     id: null,
     parentId: null,
@@ -569,6 +625,8 @@ function newCategory() {
 }
 
 function newSubcategory() {
+  tagOptions.value = [];
+
   if (!selectedCategory.value) {
     notify.warning('Selecione uma categoria para criar uma subcategoria')
     return
@@ -589,12 +647,14 @@ function newSubcategory() {
 }
 
 function editRow(row: CategoryItem) {
-  let tags: string[] = [];
+  tagInput.value = '';
+
   if (row.type === 'category') {
     selectedCategory.value = row
-    tags = [...row.tags as string[]];
+    tagOptions.value = [...row.tags]
   } else {
     selectedCategory.value = rows.value.find((item) => item.id === row.parentId) || null
+    tagOptions.value = []
   }
 
   model.value = {
@@ -605,29 +665,10 @@ function editRow(row: CategoryItem) {
     name: row.name,
     forecast: row.forecast,
     active: row.active,
-    tags: tags,
+    tags: [...row.tags],
   }
 
   formDialog.value = true
-}
-
-function onNewTag(
-  value: string,
-  done: (item?: string, mode?: 'add' | 'add-unique' | 'toggle') => void,
-) {
-  if (model.value.type !== 'category') {
-    done()
-    return
-  }
-
-  const normalized = value.trim().toLowerCase()
-
-  if (!normalized) {
-    done()
-    return
-  }
-
-  done(normalized, 'add-unique')
 }
 
 async function onSubmit() {
@@ -688,29 +729,29 @@ async function confirmDelete() {
   }
 }
 
-// async function onDelete() {
-//   $q.dialog({
-//     title: 'Confirmar exclusão',
-//     message: 'Tem certeza que deseja excluir este item? Esta ação não poderá ser desfeita.',
-//     persistent: true,
-//     ok: {
-//       label: 'Excluir',
-//       color: 'negative',
-//       unelevated: true,
-//       nocaps: true,
-//     },
-//     cancel: {
-//       label: 'Cancelar',
-//       color: 'grey-7',
-//       flat: true,
-//     },
-//   }).onOk(async () => {
-//     await categoryService.delete(model.value.id as string);
-//     loadCategories()
+function normalizeTag(value: string) {
+  return value.trim().toLowerCase()
+}
 
-//     formDialog.value = false;
-//   })
-// }
+function addTag() {
+  const normalized = normalizeTag(tagInput.value)
+
+  if (!normalized) return
+
+  if (!model.value.tags.includes(normalized)) {
+    model.value.tags = [...model.value.tags, normalized]
+  }
+
+  if (!tagOptions.value.includes(normalized)) {
+    tagOptions.value = [...tagOptions.value, normalized]
+  }
+
+  tagInput.value = ''
+}
+
+function removeTag(tag: string) {
+  model.value.tags = model.value.tags.filter((item) => item !== tag)
+}
 
 onMounted(() => {
   loadCategories();
@@ -720,6 +761,8 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 @import "src/css/list-page.scss";
+@import "src/css/dialog.scss";
+@import "src/css/tag.scss";
 
 .category-row {
   cursor: pointer;
@@ -737,53 +780,9 @@ onMounted(() => {
   padding-left: 28px;
 }
 
-.tag-chip {
-  background: #e8f0ff;
-  color: #1d4ed8;
-  border-radius: 8px;
-  font-weight: 600;
-}
-
 .total-row {
   background: #f8fafc;
   font-weight: 700;
-}
-
-.form-dialog-card {
-  width: 1024px;
-  max-width: 95vw;
-  border-radius: 18px;
-  overflow: hidden;
-}
-
-.dialog-header {
-  padding: 22px;
-}
-
-.dialog-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.dialog-subtitle {
-  font-size: 13px;
-  color: #6b7280;
-  margin-top: 4px;
-}
-
-.dialog-body {
-  padding: 28px;
-}
-
-.dialog-footer {
-  padding: 18px 22px;
-}
-
-.save-btn {
-  border-radius: 12px;
-  padding-left: 18px;
-  padding-right: 18px;
 }
 
 .subcategory-tag-info {
@@ -804,23 +803,5 @@ onMounted(() => {
 
 .planning-toggle-income {
   box-shadow: 0 4px 14px rgba(24, 121, 78, 0.08);
-}
-
-.expense-chip {
-  background: #fdecec;
-  color: #b42318;
-  padding: 6px 10px;
-  font-weight: 700;
-}
-
-.income-chip {
-  background: #e8f7ee;
-  color: #18794e;
-  padding: 6px 10px;
-  font-weight: 700;
-}
-
-:deep(.app-field .q-field__control) {
-  border-radius: 12px;
 }
 </style>

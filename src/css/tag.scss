@@ -1,0 +1,35 @@
+.tag-list-box {
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.tag-list-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.tag-list-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-list-empty {
+  font-size: 13px;
+  color: #94a3b8;
+  padding: 4px 0;
+}
+
+.tag-chip {
+  background: #e8f0ff;
+  color: #1d4ed8;
+  border-radius: 8px;
+  font-weight: 600;
+}
