@@ -1,10 +1,10 @@
-import { CategoryNodeType } from './category-node-type.type';
-import { CategoryForm } from './category.model';
+import { CategoryNodeType, FinancialType } from './category-node-type.type';
 
 export type CreateCategoryCommand = {
   name: string;
   parentId: string | null,
   type: CategoryNodeType,
+  financialType: FinancialType,
   forecast: number,
   active: boolean,
   tags: string[] | null,

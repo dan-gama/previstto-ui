@@ -9,7 +9,8 @@ export class CategoryMapper {
       forecast: form.forecast,
       parentId: form.parentId,
       tags: form.tags,
-      type: form.type
+      type: form.type,
+      financialType: form.financialType,
     }
   }
 

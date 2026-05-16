@@ -2,18 +2,26 @@
 <template>
   <q-page class="domain-page q-pa-md">
     <div class="page-header q-mb-md">
-      <div>
-        <div class="text-h5 text-weight-bold">Categorias</div>
-        <div class="text-subtitle2 text-grey-7">
-          Gerencie categorias, subcategorias, previsões de gasto e tags
-        </div>
-      </div>
 
-      <div class="row q-gutter-sm">
+
+      <div class="row q-gutter-sm items-center">
+        <q-btn-toggle
+          v-model="financialType"
+          unelevated
+          no-caps
+          class="planning-toggle"
+          :class="financialType === 'expense' ? 'planning-toggle-expense' : 'planning-toggle-income'"
+          :toggle-color="financialType === 'expense' ? 'negative' : 'positive'"
+          :options="[
+            { label: 'Despesas', value: 'expense', icon: 'trending_down' },
+            { label: 'Receitas', value: 'income', icon: 'trending_up' },
+          ]"
+        />
+
         <q-btn
-          color="primary"
+          :color="financialType === 'expense' ? 'negative' : 'positive'"
           icon="add"
-          label="Nova Categoria"
+          :label="financialType === 'expense' ? 'Nova Despesa' : 'Nova Receita'"
           no-caps
           unelevated
           class="header-btn"
@@ -22,7 +30,7 @@
 
         <q-btn
           outline
-          color="primary"
+          :color="financialType === 'expense' ? 'negative' : 'positive'"
           icon="add"
           label="Nova Subcategoria"
           no-caps
@@ -31,15 +39,26 @@
           @click="newSubcategory"
         />
       </div>
+
+
     </div>
 
     <q-card flat bordered class="domain-card">
       <q-card-section class="table-toolbar">
         <div class="toolbar-left">
-          <div class="toolbar-title">Planejamento por categoria</div>
-          <div class="toolbar-subtitle">
-            Visualize o orçamento e expanda para ver as subcategorias
+
+          <div class="toolbar-title">
+            {{ financialType === 'expense' ? 'Planejamento de despesas' : 'Planejamento de receitas' }}
           </div>
+
+          <div class="toolbar-subtitle">
+            {{ financialType === 'expense'
+              ? 'Visualize o orçamento de despesas e expanda para ver as subcategorias'
+              : 'Visualize a previsão de receitas e expanda para ver as subcategorias'
+            }}
+          </div>
+
+
         </div>
 
         <div class="toolbar-right">
@@ -259,7 +278,9 @@
         <template #bottom-row v-if="rows.length > 0">
           <q-tr class="total-row">
             <q-td />
-            <q-td class="text-weight-bold">Total planejado</q-td>
+            <q-td class="text-weight-bold">
+              {{ financialType === 'expense' ? 'Total de despesas planejadas' : 'Total de receitas previstas' }}
+            </q-td>
             <q-td class="text-weight-bold">
               {{ formatCurrency(totalBudget) }}
             </q-td>
@@ -410,7 +431,9 @@ import { CategoryMapper } from '../mappers/category.mapper'
 import { notify } from '@/shared/utils/notify.utils'
 import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 import ConfirmDeleteDialog from '@/shared/components/ConfirmDeleteDialog/ConfirmDeleteDialog.vue'
+import { FinancialType } from '../models/category-node-type.type'
 
+const financialType = ref<FinancialType>('expense');
 const deleteDialog = ref(false);
 const deleting = ref(false);
 const selectedDeleteId = ref<string | null>(null);
@@ -429,6 +452,7 @@ const model = ref<CategoryForm>({
   id: null,
   parentId: null,
   type: 'category',
+  financialType: financialType.value,
   name: '',
   forecast: 0,
   active: true,
@@ -445,7 +469,7 @@ const columns: QTableColumn[] = [
 ]
 
 const categoryRows = computed(() => {
-  return rows.value.filter((item) => item.type === 'category')
+  return rows.value.filter((item) => item.type === 'category' && item.financialType === financialType.value)
 })
 
 const parentCategory = computed(() => {
@@ -512,7 +536,7 @@ function formatCurrency(value: number) {
 }
 
 function getChildren(parentId: string) {
-  return rows.value.filter((item) => item.type === 'subcategory' && item.parentId === parentId)
+  return rows.value.filter((item) => item.type === 'subcategory' && item.parentId === parentId && item.financialType === financialType.value)
 }
 
 function getCategoryBudget(category: CategoryItem) {
@@ -534,6 +558,7 @@ function newCategory() {
     id: null,
     parentId: null,
     type: 'category',
+    financialType: financialType.value,
     name: '',
     forecast: 0,
     active: true,
@@ -553,6 +578,7 @@ function newSubcategory() {
     id: null,
     parentId: selectedCategory.value.id,
     type: 'subcategory',
+    financialType: financialType.value,
     name: '',
     forecast: 0,
     active: true,
@@ -575,6 +601,7 @@ function editRow(row: CategoryItem) {
     id: row.id,
     parentId: row.parentId,
     type: row.type,
+    financialType: row.financialType,
     name: row.name,
     forecast: row.forecast,
     active: row.active,
@@ -762,6 +789,35 @@ onMounted(() => {
 .subcategory-tag-info {
   background: #f8fafc;
   color: #334155;
+}
+
+.planning-toggle {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e9eef5;
+  background: #ffffff;
+}
+
+.planning-toggle-expense {
+  box-shadow: 0 4px 14px rgba(180, 35, 24, 0.08);
+}
+
+.planning-toggle-income {
+  box-shadow: 0 4px 14px rgba(24, 121, 78, 0.08);
+}
+
+.expense-chip {
+  background: #fdecec;
+  color: #b42318;
+  padding: 6px 10px;
+  font-weight: 700;
+}
+
+.income-chip {
+  background: #e8f7ee;
+  color: #18794e;
+  padding: 6px 10px;
+  font-weight: 700;
 }
 
 :deep(.app-field .q-field__control) {
