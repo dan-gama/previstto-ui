@@ -8,7 +8,7 @@ export interface CategoryForm {
   name: string
   forecast: number
   active: boolean
-  tags: string[] | null
+  tags: string[]
 }
 
 export interface CategoryItem {
@@ -19,5 +19,5 @@ export interface CategoryItem {
   name: string
   forecast: number
   active: boolean
-  tags: string[] | null
+  tags: string[]
 }

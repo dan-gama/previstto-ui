@@ -342,7 +342,7 @@
                 label="Tags disponíveis"
                 class="app-field"
                 hint="As subcategorias herdam as tags cadastradas aqui"
-                :options!="model.tags"
+                :options="model.tags ?? []"
                 @new-value="onNewTag"
               >
                 <template #prepend>
@@ -582,14 +582,14 @@ function newSubcategory() {
     name: '',
     forecast: 0,
     active: true,
-    tags: null,
+    tags: [],
   }
 
   formDialog.value = true
 }
 
 function editRow(row: CategoryItem) {
-  let tags: string[] | null = null;
+  let tags: string[] = [];
   if (row.type === 'category') {
     selectedCategory.value = row
     tags = [...row.tags as string[]];

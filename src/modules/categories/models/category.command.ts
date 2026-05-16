@@ -7,11 +7,11 @@ export type CreateCategoryCommand = {
   financialType: FinancialType,
   forecast: number,
   active: boolean,
-  tags: string[] | null,
+  tags: string[],
 }
 export type UpdateCategoryCommand = {
   name: string,
   forecast: number,
   active: boolean,
-  tags: string[] | null,
+  tags: string[],
 }
