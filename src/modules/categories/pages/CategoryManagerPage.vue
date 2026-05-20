@@ -483,7 +483,7 @@ import { CategoryMapper } from '../mappers/category.mapper'
 import { notify } from '@/shared/utils/notify.utils'
 import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 import ConfirmDeleteDialog from '@/shared/components/ConfirmDeleteDialog/ConfirmDeleteDialog.vue'
-import { FinancialType } from '../models/category-node-type.type'
+import { FinancialType } from '@/shared/domain/types/FinancialType'
 
 const financialType = ref<FinancialType>('expense');
 const deleteDialog = ref(false);

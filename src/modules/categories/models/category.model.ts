@@ -1,10 +1,11 @@
-import { CategoryNodeType, FinancialType } from './category-node-type.type'
+import { CategoryType } from "@/shared/domain/types/CategoryType"
+import { FinancialType } from "@/shared/domain/types/FinancialType"
 
 export interface CategoryForm {
   id: string | null
   parentId: string | null
-  type: CategoryNodeType
-  financialType: FinancialType,
+  type: CategoryType
+  financialType: FinancialType
   name: string
   forecast: number
   active: boolean
@@ -14,8 +15,8 @@ export interface CategoryForm {
 export interface CategoryItem {
   id: string
   parentId: string | null
-  type: CategoryNodeType
-  financialType: FinancialType,
+  type: CategoryType
+  financialType: FinancialType
   name: string
   forecast: number
   active: boolean
