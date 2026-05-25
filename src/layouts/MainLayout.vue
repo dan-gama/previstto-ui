@@ -272,6 +272,20 @@
                   Pessoas
                 </q-tooltip>
               </q-item>
+
+              <q-item clickable v-ripple class="menu-item" to="/schedules">
+                <q-item-section avatar class="menu-icon-section">
+                  <q-icon name="schedule" />
+                </q-item-section>
+
+                <q-item-section v-if="!drawerMini">
+                  <q-item-label>Agendamento</q-item-label>
+                </q-item-section>
+
+                <q-tooltip v-if="drawerMini" anchor="center right" self="center left">
+                  Agendamento
+                </q-tooltip>
+              </q-item>
             </q-list>
           </div>
 
