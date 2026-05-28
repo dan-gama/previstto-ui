@@ -2,7 +2,7 @@ import { CategoryType } from "@/shared/domain/types/CategoryType";
 import { FinancialType } from "@/shared/domain/types/FinancialType";
 import { RecurrenceType } from "../types/RecurrenceType";
 import { Installment } from "@/shared/domain/interfaces/Installment";
-import { Status } from "../types/Status";
+import { StatusType } from "../types/StatusType";
 
 export interface ScheduleForm {
   id: string | null;
@@ -29,6 +29,6 @@ export interface ScheduleItem {
   value: number;
   dueDate: Date;
   recurrenceType: RecurrenceType;
-  status: Status
+  status: StatusType;
   overdue: boolean;
 }
