@@ -1,7 +1,6 @@
 import http from '@/shared/infrastructure/http/http'
-import { CategoryItem } from '../models/category.model'
 import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse';
-import { CreateCategoryCommand, UpdateCategoryCommand } from '../models/category.command';
+import { ScheduleItem } from '../models/schedule.model';
 
 const module = 'schedules'
 
@@ -22,8 +21,8 @@ export const scheduleService = {
   //   await http.delete(`${module}/${id}`);
   // },
 
-  async findAll(): Promise<CategoryItem[]> {
-    const { data } = await http.get<ApiResponse<CategoryItem[]>>(module);
+  async findAll(): Promise<ScheduleItem[]> {
+    const { data } = await http.get<ApiResponse<ScheduleItem[]>>(`${module}/grid`);
     return data.data;
   }
 }

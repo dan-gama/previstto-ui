@@ -1,6 +1,6 @@
-export type RecurrenceType = 'montly' | 'installments';
+export type RecurrenceType = 'monthly' | 'installment';
 
 export const RecurrenceTypeLabel: Record<RecurrenceType, string> = {
-  montly: 'Mensal',
-  installments: 'Parcelamento',
+  monthly: 'Mensal',
+  installment: 'Parcelamento',
 }

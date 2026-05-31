@@ -147,8 +147,8 @@
             <div class="text-weight-medium">{{ props.row.description }}</div>
             <div class="text-caption text-grey-6">
               {{ props.row.categoryName }}
-              <span v-if="props.row.subcategoryName">
-                / {{ props.row.subcategoryName }}
+              <span v-if="props.row.subCategoryName">
+                / {{ props.row.subCategoryName }}
               </span>
             </div>
           </q-td>
@@ -171,7 +171,7 @@
               {{ formatDate(props.row.dueDate) }}
             </div>
             <div class="text-caption text-grey-6">
-              {{ getDueText(props.row) }}
+              {{ RecurrenceTypeLabel[props.row.recurrence as RecurrenceType] }}
             </div>
           </q-td>
         </template>
@@ -188,14 +188,14 @@
           <q-td :props="props">
             <q-badge
               rounded
-              :class="props.row.status === 'pending' ? 'status-pending' : 'status-active'"
+              :class="['pending', 'overdue'].includes(props.row.status) ? 'status-pending' : 'status-active'"
             >
               <q-icon
-                :name="props.row.status === 'pending' ? 'schedule' : 'check_circle'"
+                :name="['pending', 'overdue'].includes(props.row.status) ? 'schedule' : 'check_circle'"
                 size="14px"
                 class="q-mr-xs"
               />
-              {{ props.row.status === 'pending' ? 'Pendente' : 'Confirmado' }}
+              {{ StatusTypeLabel[props.row.status as StatusType] }}
             </q-badge>
           </q-td>
         </template>
@@ -242,7 +242,7 @@
     </q-card>
 
     <q-dialog v-model="formDialog">
-      <q-card class="form-dialog-card">
+      <q-card class="form-dialog-card" v-drag>
         <q-card-section
           class="dialog-header"
           :class="financialType === 'expense' ? 'dialog-header-expense' : 'dialog-header-income'"
@@ -333,7 +333,7 @@
 
             <div class="col-12 col-md-4">
               <q-select
-                v-model="model.recurrenceType"
+                v-model="model.recurrence"
                 outlined
                 emit-value
                 map-options
@@ -343,7 +343,7 @@
               />
             </div>
 
-            <div class="col-12 col-md-4" v-if="model.recurrenceType === 'installments'">
+            <div class="col-12 col-md-4" v-if="model.recurrence === 'installment'">
               <q-input
                 v-model.number="model.totalInstallments"
                 outlined
@@ -384,23 +384,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { vDrag } from '@/components/vDrag/v-drag'
+import { computed, onMounted, ref } from 'vue'
 import type { QTableColumn } from 'quasar'
 import { SharedRules } from '@/shared/domain/validation/form-rules'
 import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 import { notify } from '@/shared/utils/notify.utils'
+import { scheduleService } from '../services/schedule.services'
+import { ScheduleItem } from '../models/schedule.model'
+import { RecurrenceType, RecurrenceTypeLabel } from '../types/RecurrenceType'
+import { FinancialType } from '@/shared/domain/types/FinancialType'
+import { StatusType, StatusTypeLabel } from '../types/StatusType'
 
 const installmentCount = computed(() => {
-  return filteredRows.value.filter((item) => item.recurrenceType === 'installments').length
+  return filteredRows.value.filter((item) => item.recurrence === 'installments').length
 })
 
-type FinancialType = 'expense' | 'income'
-type RecurrenceType = 'none' | 'monthly' | 'installments'
 type FutureEntryStatus = 'pending' | 'confirmed'
 
 interface FutureEntry {
   id: string
-  financialType: FinancialType
+  type: FinancialType
   description: string
   amount: number
   categoryId: string
@@ -409,7 +413,7 @@ interface FutureEntry {
   personId?: string | null
   personName?: string | null
   dueDate: string
-  recurrenceType: RecurrenceType
+  recurrence: RecurrenceType
   totalInstallments?: number | null
   currentInstallment?: number | null
   active: boolean
@@ -418,13 +422,13 @@ interface FutureEntry {
 
 interface FutureEntryForm {
   id: string | null
-  financialType: FinancialType
+  type: FinancialType
   description: string
   amount: number
   categoryId: string | null
   personId: string | null
   dueDate: string
-  recurrenceType: RecurrenceType
+  recurrence: RecurrenceType
   totalInstallments: number | null
   active: boolean
 }
@@ -437,91 +441,91 @@ const saving = ref(false)
 const formDialog = ref(false)
 const form = ref()
 
-const rows = ref<FutureEntry[]>([
-  {
-    id: '1',
-    financialType: 'expense',
-    description: 'Conta de energia',
-    amount: 350,
-    categoryId: 'moradia',
-    categoryName: 'Moradia',
-    subcategoryName: 'Contas',
-    personId: 'familia',
-    personName: 'Família',
-    dueDate: '2026-05-15',
-    recurrenceType: 'monthly',
-    active: true,
-    status: 'pending',
-  },
-  {
-    id: '2',
-    financialType: 'expense',
-    description: 'Parcela Peugeot 208',
-    amount: 1450,
-    categoryId: 'transporte',
-    categoryName: 'Transporte',
-    subcategoryName: 'Financiamento',
-    personId: 'danilo',
-    personName: 'Danilo',
-    dueDate: '2026-05-10',
-    recurrenceType: 'monthly',
-    active: true,
-    status: 'pending',
-  },
-  {
-    id: '3',
-    financialType: 'expense',
-    description: 'Netflix',
-    amount: 55.9,
-    categoryId: 'assinaturas',
-    categoryName: 'Assinaturas',
-    subcategoryName: 'Streaming',
-    personId: 'familia',
-    personName: 'Família',
-    dueDate: '2026-05-12',
-    recurrenceType: 'monthly',
-    active: true,
-    status: 'pending',
-  },
-  {
-    id: '4',
-    financialType: 'income',
-    description: 'Salário GEAP',
-    amount: 8000,
-    categoryId: 'salario',
-    categoryName: 'Salário',
-    personId: 'danilo',
-    personName: 'Danilo',
-    dueDate: '2026-05-10',
-    recurrenceType: 'monthly',
-    active: true,
-    status: 'pending',
-  },
-  {
-    id: '5',
-    financialType: 'income',
-    description: 'Recebimento empréstimo',
-    amount: 500,
-    categoryId: 'emprestimos',
-    categoryName: 'Empréstimos recebidos',
-    dueDate: '2026-05-20',
-    recurrenceType: 'installments',
-    totalInstallments: 2,
-    currentInstallment: 1,
-    active: true,
-    status: 'pending',
-  },
-])
+const rows = ref<ScheduleItem[]>([])
+//   {
+//     id: '1',
+//     financialType: 'expense',
+//     description: 'Conta de energia',
+//     amount: 350,
+//     categoryId: 'moradia',
+//     categoryName: 'Moradia',
+//     subcategoryName: 'Contas',
+//     personId: 'familia',
+//     personName: 'Família',
+//     dueDate: '2026-05-15',
+//     recurrenceType: 'monthly',
+//     active: true,
+//     status: 'pending',
+//   },
+//   {
+//     id: '2',
+//     financialType: 'expense',
+//     description: 'Parcela Peugeot 208',
+//     amount: 1450,
+//     categoryId: 'transporte',
+//     categoryName: 'Transporte',
+//     subcategoryName: 'Financiamento',
+//     personId: 'danilo',
+//     personName: 'Danilo',
+//     dueDate: '2026-05-10',
+//     recurrenceType: 'monthly',
+//     active: true,
+//     status: 'pending',
+//   },
+//   {
+//     id: '3',
+//     financialType: 'expense',
+//     description: 'Netflix',
+//     amount: 55.9,
+//     categoryId: 'assinaturas',
+//     categoryName: 'Assinaturas',
+//     subcategoryName: 'Streaming',
+//     personId: 'familia',
+//     personName: 'Família',
+//     dueDate: '2026-05-12',
+//     recurrenceType: 'monthly',
+//     active: true,
+//     status: 'pending',
+//   },
+//   {
+//     id: '4',
+//     financialType: 'income',
+//     description: 'Salário GEAP',
+//     amount: 8000,
+//     categoryId: 'salario',
+//     categoryName: 'Salário',
+//     personId: 'danilo',
+//     personName: 'Danilo',
+//     dueDate: '2026-05-10',
+//     recurrenceType: 'monthly',
+//     active: true,
+//     status: 'pending',
+//   },
+//   {
+//     id: '5',
+//     financialType: 'income',
+//     description: 'Recebimento empréstimo',
+//     amount: 500,
+//     categoryId: 'emprestimos',
+//     categoryName: 'Empréstimos recebidos',
+//     dueDate: '2026-05-20',
+//     recurrenceType: 'installments',
+//     totalInstallments: 2,
+//     currentInstallment: 1,
+//     active: true,
+//     status: 'pending',
+//   },
+// ])
 
 const model = ref<FutureEntryForm>({
   id: null,
-  financialType: financialType.value,
+  type: financialType.value,
   description: '',
   amount: 0,
   categoryId: null,
   personId: null,
   dueDate: '',
-  recurrenceType: 'monthly',
+  recurrence: 'monthly',
   totalInstallments: null,
   active: true,
 })
@@ -557,7 +561,7 @@ const personOptions = [
 ]
 
 const filteredRows = computed(() => {
-  return rows.value.filter((item) => item.financialType === financialType.value)
+  return rows.value.filter((item) => item.type === financialType.value)
 })
 
 const totalAmount = computed(() => {
@@ -565,11 +569,11 @@ const totalAmount = computed(() => {
 })
 
 const pendingCount = computed(() => {
-  return filteredRows.value.filter((item) => item.status === 'pending').length
+  return filteredRows.value.filter((item) => ['pending', 'overdue'].includes(item.status)).length
 })
 
 const recurringCount = computed(() => {
-  return filteredRows.value.filter((item) => item.recurrenceType !== 'none').length
+  return filteredRows.value.filter((item) => item.recurrence !== 'none').length
 })
 
 const formTitle = computed(() => {
@@ -587,13 +591,13 @@ const formTitle = computed(() => {
 function newFutureEntry() {
   model.value = {
     id: null,
-    financialType: financialType.value,
+    type: financialType.value,
     description: '',
     amount: 0,
     categoryId: null,
     personId: null,
     dueDate: '',
-    recurrenceType: 'monthly',
+    recurrence: 'monthly',
     totalInstallments: null,
     active: true,
   }
@@ -604,13 +608,13 @@ function newFutureEntry() {
 function editRow(row: FutureEntry) {
   model.value = {
     id: row.id,
-    financialType: row.financialType,
+    type: row.type,
     description: row.description,
     amount: row.amount,
     categoryId: row.categoryId,
     personId: row.personId || null,
     dueDate: row.dueDate,
-    recurrenceType: row.recurrenceType,
+    recurrence: row.recurrence,
     totalInstallments: row.totalInstallments || null,
     active: row.active,
   }
@@ -644,9 +648,9 @@ function formatDate(value: string) {
 }
 
 function formatRecurrence(row: FutureEntry) {
-  if (row.recurrenceType === 'monthly') return 'Mensal'
+  if (row.recurrence === 'monthly') return 'Mensal'
 
-  if (row.recurrenceType === 'installments') {
+  if (row.recurrence === 'installment') {
     return `${row.currentInstallment || 1}/${row.totalInstallments || '-'} parcelas`
   }
 
@@ -654,16 +658,28 @@ function formatRecurrence(row: FutureEntry) {
 }
 
 function getDueText(row: FutureEntry) {
-  if (row.recurrenceType === 'monthly') {
+  if (row.recurrence === 'monthly') {
     return 'Recorrente mensal'
   }
 
-  if (row.recurrenceType === 'installments') {
+  if (row.recurrence === 'installment') {
     return 'Lançamento parcelado'
   }
 
   return 'Lançamento único'
 }
+
+async function loadSchedules() {
+  try {
+    rows.value = await scheduleService.findAll();
+  } catch (error) {
+
+  }
+}
+
+onMounted(() => {
+  loadSchedules()
+});
 </script>
 
 <style lang="scss" scoped>

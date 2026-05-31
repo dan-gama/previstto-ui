@@ -1,8 +1,8 @@
-import { CategoryType } from "@/shared/domain/types/CategoryType";
-import { FinancialType } from "@/shared/domain/types/FinancialType";
-import { RecurrenceType } from "../types/RecurrenceType";
-import { Installment } from "@/shared/domain/interfaces/Installment";
-import { StatusType } from "../types/StatusType";
+import { CategoryType } from '@/shared/domain/types/CategoryType';
+import { FinancialType } from '@/shared/domain/types/FinancialType';
+import { RecurrenceType } from '../types/RecurrenceType';
+import { Installment } from '@/shared/domain/interfaces/Installment';
+import { StatusType } from '../types/StatusType';
 
 export interface ScheduleForm {
   id: string | null;
@@ -22,13 +22,15 @@ export interface ScheduleForm {
 
 export interface ScheduleItem {
   id: string;
-  financialType: FinancialType;
+  type: string;
   description: string;
-  category: string;
-  subCategory: string | null;
-  value: number;
+  subCategoryName: string
+  categoryName: string;
+  tag: string;
   dueDate: Date;
-  recurrenceType: RecurrenceType;
-  status: StatusType;
+  amount: number;
+  recurrence: string;
+  status: string;
   overdue: boolean;
+  active: boolean;
 }
