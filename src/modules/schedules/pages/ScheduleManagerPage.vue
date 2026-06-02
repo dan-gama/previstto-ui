@@ -295,6 +295,7 @@
             </div>
 
             <div class="col-12 col-md-6">
+              <!--
               <q-select
                 v-model="model.categoryId"
                 outlined
@@ -304,7 +305,72 @@
                 class="app-field"
                 :options="categoryOptions"
                 :rules="[required()]"
-              />
+              />-->
+
+
+
+              <q-select
+                v-model="model.categoryId"
+                :options="filteredOptions"
+                outlined
+                emit-value
+                map-options
+                use-input
+                input-debounce="300"
+                label="Categoria"
+                class="app-field"
+                clearable
+                @filter="filterFn"
+              >
+                <!-- Como o item aparece DEPOIS de selecionado -->
+                <template v-slot:selected-item="scope">
+                  <div v-if="scope.opt" class="row items-center q-gutter-xs">
+                    <span v-if="scope.opt.parentName" class="text-caption text-grey-6">
+                      {{ scope.opt.parentName }} /
+                    </span>
+                    <span class="text-weight-medium text-grey-9">
+                      {{ scope.opt.pureLabel }}
+                    </span>
+                  </div>
+                </template>
+
+                <!-- Como os itens aparecem na LISTA DO MENU (Dropdown) -->
+                <template v-slot:option="scope">
+                  <q-item v-bind="scope.itemProps" class="category-item">
+                    <q-item-section>
+                      <div class="row items-center justify-between no-wrap full-width">
+                        <!-- Nome do item (Subcategoria ou Categoria Única) -->
+                        <span :class="scope.opt.isSub ? 'text-weight-regular text-grey-9 q-pl-sm' : 'text-weight-bold text-primary'">
+                          {{ scope.opt.pureLabel }}
+                        </span>
+
+                        <!-- Badge indicando a Categoria Pai (Apenas para subcategorias) -->
+                        <q-badge
+                          v-if="scope.opt.isSub && scope.opt.parentName"
+                          outline
+                          color="grey-6"
+                          class="text-caption text-weight-regular q-px-sm"
+                        >
+                          {{ scope.opt.parentName }}
+                        </q-badge>
+                      </div>
+                    </q-item-section>
+                  </q-item>
+                </template>
+
+                <template v-slot:no-option>
+                  <q-item>
+                    <q-item-section class="text-grey-6 text-caption text-center">
+                      Nenhuma categoria encontrada
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
+
+
+
+
+
             </div>
 
             <div class="col-12 col-md-6">
@@ -395,6 +461,131 @@ import { ScheduleItem } from '../models/schedule.model'
 import { RecurrenceType, RecurrenceTypeLabel } from '../types/RecurrenceType'
 import { FinancialType } from '@/shared/domain/types/FinancialType'
 import { StatusType, StatusTypeLabel } from '../types/StatusType'
+
+
+
+
+// Interface estrita para os objetos do Quasar Select
+interface CategoryOption {
+  label: string        // Usado internamente pelo Quasar para busca textual completa
+  pureLabel: string    // Apenas o nome limpo (ex: "Smartphones")
+  value: string | number
+  disable?: boolean
+  isSub: boolean
+  parentName?: string  // Nome da categoria pai (ex: "Eletrônicos")
+}
+
+// 1. Dados brutos (Exemplo baseado na estrutura padrão)
+const rawCategories = [
+  {
+    id: 'eletronicos',
+    nome: 'Eletrônicos',
+    subcategorias: [
+      { id: 'smartphones', nome: 'Smartphones' },
+      { id: 'notebooks', nome: 'Notebooks' }
+    ]
+  },
+  {
+    id: 'livros',
+    nome: 'Livros', // Sem subcategorias (Selecionável)
+    subcategorias: []
+  },
+  {
+    id: 'roupas',
+    nome: 'Roupas',
+    subcategorias: [
+      { id: 'camisetas', nome: 'Camisetas' },
+      { id: 'calcas', nome: 'Calças' }
+    ]
+  }
+]
+
+// 2. Transforma a árvore em uma lista plana adaptada
+const flattenedOptions = computed<CategoryOption[]>(() => {
+  const options: CategoryOption[] = []
+
+  rawCategories.forEach(cat => {
+    const hasSub = cat.subcategorias && cat.subcategorias.length > 0
+
+    if (hasSub) {
+      // Regra: Se tem subcategoria, a categoria pai vira apenas um "Header" desabilitado na lista limpa
+      options.push({
+        label: cat.nome.toLowerCase(),
+        pureLabel: cat.nome,
+        value: cat.id,
+        disable: true,
+        isSub: false
+      })
+
+      cat.subcategorias.forEach(sub => {
+        options.push({
+          // O 'label' junta pai + filho internamente para que a busca encontre por qualquer um dos dois termos
+          label: `${cat.nome} ${sub.nome}`.toLowerCase(),
+          pureLabel: sub.nome,
+          value: sub.id,
+          isSub: true,
+          parentName: cat.nome
+        })
+      })
+    } else {
+      // Regra: Sem subcategoria, a categoria pai é totalmente selecionável
+      options.push({
+        label: cat.nome.toLowerCase(),
+        pureLabel: cat.nome,
+        value: cat.id,
+        isSub: false
+      })
+    }
+  })
+
+  return options
+})
+
+// 3. Estados de busca controle
+const searchFilter = ref<string>('')
+
+// 4. Filtro Avançado Contextual
+const filteredOptions = computed<CategoryOption[]>(() => {
+  const needle = searchFilter.value.toLowerCase().trim()
+
+  if (!needle) return flattenedOptions.value
+
+  // Passo 1: Verifica se o usuário digitou o nome de alguma Categoria Pai inteira ou parcial
+  const exactParentMatch = rawCategories.find(cat =>
+    cat.nome.toLowerCase().includes(needle) && cat.subcategorias?.length > 0
+  )
+
+  if (exactParentMatch) {
+    // Regra nova: Se digitou o nome da categoria pai, filtra para mostrar APENAS as subcategorias dela!
+    return flattenedOptions.value.filter(opt => opt.parentName === exactParentMatch.nome)
+  }
+
+  // Passo 2: Se não for busca por categoria pai, faz a busca textual padrão nas subcategorias
+  return flattenedOptions.value.filter(opt => opt.label.includes(needle))
+})
+
+// 5. Função de Filtro exigida pelo Quasar (com tipagem estrita contra ESLint)
+const filterFn = (val: string, update: (callback: () => void) => void): void => {
+  update(() => {
+    searchFilter.value = val
+  })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const installmentCount = computed(() => {
   return filteredRows.value.filter((item) => item.recurrence === 'installments').length
@@ -742,5 +933,22 @@ onMounted(() => {
   color: #c2410c;
   padding: 6px 10px;
   font-weight: 700;
+}
+
+.category-item {
+  min-height: 40px;
+
+  // Customização para os headers de categorias desabilitados (Pai)
+  &.q-manual-focusable--disabled {
+    opacity: 1 !important; // Remove o visual semi-transparente padrão do Quasar
+    background-color: #f8fafc; // Dá um leve fundo de seção de menu
+
+    .text-primary {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b !important; // Transforma o pai em um label de seção cinza elegante
+    }
+  }
 }
 </style>
