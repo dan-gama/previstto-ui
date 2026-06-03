@@ -2,6 +2,7 @@ import http from '@/shared/infrastructure/http/http'
 import { CategoryItem } from '../models/category.model'
 import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse';
 import { CreateCategoryCommand, UpdateCategoryCommand } from '../models/category.command';
+import { CategorySelect } from '@/shared/domain/interfaces/CategorySelect';
 
 const module = 'categories'
 
@@ -24,6 +25,11 @@ export const categoryService = {
 
   async findAll(): Promise<CategoryItem[]> {
     const { data } = await http.get<ApiResponse<CategoryItem[]>>(module);
+    return data.data;
+  },
+
+  async getCategorySelect(): Promise<CategorySelect[]> {
+    const { data } = await http.get<ApiResponse<CategorySelect[]>>(`${module}/select`);
     return data.data;
   }
 }

@@ -24,5 +24,5 @@ export const scheduleService = {
   async findAll(): Promise<ScheduleItem[]> {
     const { data } = await http.get<ApiResponse<ScheduleItem[]>>(`${module}/grid`);
     return data.data;
-  }
+  },
 }

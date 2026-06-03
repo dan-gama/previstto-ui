@@ -461,6 +461,8 @@ import { ScheduleItem } from '../models/schedule.model'
 import { RecurrenceType, RecurrenceTypeLabel } from '../types/RecurrenceType'
 import { FinancialType } from '@/shared/domain/types/FinancialType'
 import { StatusType, StatusTypeLabel } from '../types/StatusType'
+import { CategorySelect } from '@/shared/domain/interfaces/CategorySelect'
+import { categoryService } from '@/modules/categories/services/category.service'
 
 
 
@@ -476,62 +478,62 @@ interface CategoryOption {
 }
 
 // 1. Dados brutos (Exemplo baseado na estrutura padrão)
-const rawCategories = [
-  {
-    id: 'eletronicos',
-    nome: 'Eletrônicos',
-    subcategorias: [
-      { id: 'smartphones', nome: 'Smartphones' },
-      { id: 'notebooks', nome: 'Notebooks' }
-    ]
-  },
-  {
-    id: 'livros',
-    nome: 'Livros', // Sem subcategorias (Selecionável)
-    subcategorias: []
-  },
-  {
-    id: 'roupas',
-    nome: 'Roupas',
-    subcategorias: [
-      { id: 'camisetas', nome: 'Camisetas' },
-      { id: 'calcas', nome: 'Calças' }
-    ]
-  }
-]
+const rawCategories = ref<CategorySelect[]>([]);
+//   {
+//     id: 'eletronicos',
+//     nome: 'Eletrônicos',
+//     subcategorias: [
+//       { id: 'smartphones', nome: 'Smartphones' },
+//       { id: 'notebooks', nome: 'Notebooks' }
+//     ]
+//   },
+//   {
+//     id: 'livros',
+//     nome: 'Livros', // Sem subcategorias (Selecionável)
+//     subcategorias: []
+//   },
+//   {
+//     id: 'roupas',
+//     nome: 'Roupas',
+//     subcategorias: [
+//       { id: 'camisetas', nome: 'Camisetas' },
+//       { id: 'calcas', nome: 'Calças' }
+//     ]
+//   }
+// ]
 
 // 2. Transforma a árvore em uma lista plana adaptada
 const flattenedOptions = computed<CategoryOption[]>(() => {
   const options: CategoryOption[] = []
 
-  rawCategories.forEach(cat => {
-    const hasSub = cat.subcategorias && cat.subcategorias.length > 0
+  rawCategories.value.forEach((cat: CategorySelect) => {
+    const hasSub = cat.subCategories && cat.subCategories.length > 0
 
     if (hasSub) {
       // Regra: Se tem subcategoria, a categoria pai vira apenas um "Header" desabilitado na lista limpa
       options.push({
-        label: cat.nome.toLowerCase(),
-        pureLabel: cat.nome,
+        label: cat.name.toLowerCase(),
+        pureLabel: cat.name,
         value: cat.id,
         disable: true,
         isSub: false
       })
 
-      cat.subcategorias.forEach(sub => {
+      cat.subCategories.forEach(sub => {
         options.push({
           // O 'label' junta pai + filho internamente para que a busca encontre por qualquer um dos dois termos
-          label: `${cat.nome} ${sub.nome}`.toLowerCase(),
-          pureLabel: sub.nome,
+          label: `${cat.name} ${sub.name}`.toLowerCase(),
+          pureLabel: sub.name,
           value: sub.id,
           isSub: true,
-          parentName: cat.nome
+          parentName: cat.name
         })
       })
     } else {
       // Regra: Sem subcategoria, a categoria pai é totalmente selecionável
       options.push({
-        label: cat.nome.toLowerCase(),
-        pureLabel: cat.nome,
+        label: cat.name.toLowerCase(),
+        pureLabel: cat.name,
         value: cat.id,
         isSub: false
       })
@@ -551,13 +553,13 @@ const filteredOptions = computed<CategoryOption[]>(() => {
   if (!needle) return flattenedOptions.value
 
   // Passo 1: Verifica se o usuário digitou o nome de alguma Categoria Pai inteira ou parcial
-  const exactParentMatch = rawCategories.find(cat =>
-    cat.nome.toLowerCase().includes(needle) && cat.subcategorias?.length > 0
+  const exactParentMatch = rawCategories.value.find((cat: CategorySelect) =>
+    cat.name.toLowerCase().includes(needle) && cat.subCategories?.length > 0
   )
 
   if (exactParentMatch) {
     // Regra nova: Se digitou o nome da categoria pai, filtra para mostrar APENAS as subcategorias dela!
-    return flattenedOptions.value.filter(opt => opt.parentName === exactParentMatch.nome)
+    return flattenedOptions.value.filter(opt => opt.parentName === exactParentMatch.name)
   }
 
   // Passo 2: Se não for busca por categoria pai, faz a busca textual padrão nas subcategorias
@@ -868,8 +870,17 @@ async function loadSchedules() {
   }
 }
 
+async function loadCategoriesSelect() {
+  try {
+    rawCategories.value = await categoryService.getCategorySelect();
+  } catch (error) {
+
+  }
+}
+
 onMounted(() => {
-  loadSchedules()
+  loadSchedules();
+  loadCategoriesSelect();
 });
 </script>
 
