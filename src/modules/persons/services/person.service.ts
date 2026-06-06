@@ -2,6 +2,7 @@ import http from '@/shared/infrastructure/http/http';
 import { CreatePersonCommand, UpdatePersonCommand } from '../models/person.command';
 import { PersonForm, PersonList } from '../models/person.model';
 import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse';
+import { PersonSelect } from '@/shared/domain/interfaces/PersonSelect';
 
 const module = 'persons';
 
@@ -27,4 +28,9 @@ export const personService = {
     const { data } = await http.get<ApiResponse<PersonForm>>(`${module}/${id}`)
     return data.data;
   },
+
+  async getSelect(): Promise<PersonSelect[]> {
+    const { data } = await http.get<ApiResponse<PersonSelect[]>>(`${module}/select`);
+    return data.data;
+  }
 }

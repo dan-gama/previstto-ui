@@ -28,7 +28,7 @@ export const categoryService = {
     return data.data;
   },
 
-  async getCategorySelect(): Promise<CategorySelect[]> {
+  async getSelect(): Promise<CategorySelect[]> {
     const { data } = await http.get<ApiResponse<CategorySelect[]>>(`${module}/select`);
     return data.data;
   }

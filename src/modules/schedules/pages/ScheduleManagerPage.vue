@@ -275,7 +275,18 @@
 
         <q-card-section class="dialog-body">
           <q-form class="row q-col-gutter-md" @submit.prevent="onSubmit" ref="form" greedy>
-            <div class="col-12 col-md-8">
+            <div class="col-12 col-md-4">
+              <q-select
+                v-model="model.recurrence"
+                outlined
+                emit-value
+                map-options
+                label="Recorrência"
+                class="app-field"
+                :options="recurrenceOptions"
+              />
+            </div>
+            <div class="col-12 col-md-4">
               <q-input
                 v-model="model.description"
                 outlined
@@ -284,7 +295,6 @@
                 :rules="[required()]"
               />
             </div>
-
             <div class="col-12 col-md-4">
               <money-input
                 v-model="model.amount"
@@ -293,22 +303,54 @@
                 :rules="[required()]"
               />
             </div>
-
-            <div class="col-12 col-md-6">
-              <!--
+            <div class="col-12 col-md-4">
               <q-select
-                v-model="model.categoryId"
+                v-model="model.personId"
                 outlined
                 emit-value
                 map-options
-                label="Categoria"
+                clearable
+                label="Conta bancária"
                 class="app-field"
-                :options="categoryOptions"
-                :rules="[required()]"
-              />-->
-
-
-
+                :options="bankAccountOptions"
+              />
+            </div>
+            <div class="col-12 col-md-4">
+              <q-select
+                v-model="model.personId"
+                outlined
+                emit-value
+                map-options
+                clearable
+                label="Persona"
+                class="app-field"
+                :options="personOptions"
+              />
+            </div>
+            <div class="col-12 col-md-4">
+              <q-input
+                outlined
+                clearable
+                label="Primeiro vencimento"
+                v-model="model.dueDate"
+                mask="##/##/####"
+                :rules="[
+                  required('Informe sua data de nascimento')
+                ]">
+                <template v-slot:append>
+                  <q-icon name="event" class="cursor-pointer">
+                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                      <q-date v-model="model.dueDate" mask="DD/MM/YYYY">
+                        <div class="row items-center justify-end">
+                          <q-btn v-close-popup label="Close" color="primary" flat />
+                        </div>
+                      </q-date>
+                    </q-popup-proxy>
+                  </q-icon>
+                </template>
+              </q-input>
+            </div>
+            <div class="col-12 col-md-8">
               <q-select
                 v-model="model.categoryId"
                 :options="filteredOptions"
@@ -333,7 +375,6 @@
                     </span>
                   </div>
                 </template>
-
                 <!-- Como os itens aparecem na LISTA DO MENU (Dropdown) -->
                 <template v-slot:option="scope">
                   <q-item v-bind="scope.itemProps" class="category-item">
@@ -343,7 +384,6 @@
                         <span :class="scope.opt.isSub ? 'text-weight-regular text-grey-9 q-pl-sm' : 'text-weight-bold text-primary'">
                           {{ scope.opt.pureLabel }}
                         </span>
-
                         <!-- Badge indicando a Categoria Pai (Apenas para subcategorias) -->
                         <q-badge
                           v-if="scope.opt.isSub && scope.opt.parentName"
@@ -357,7 +397,6 @@
                     </q-item-section>
                   </q-item>
                 </template>
-
                 <template v-slot:no-option>
                   <q-item>
                     <q-item-section class="text-grey-6 text-caption text-center">
@@ -366,59 +405,19 @@
                   </q-item>
                 </template>
               </q-select>
-
-
-
-
-
             </div>
-
-            <div class="col-12 col-md-6">
+            <div class="col-12 col-md-4">
               <q-select
                 v-model="model.personId"
                 outlined
                 emit-value
                 map-options
                 clearable
-                label="Pessoa"
+                label="Tag"
                 class="app-field"
                 :options="personOptions"
               />
             </div>
-
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model="model.dueDate"
-                outlined
-                type="date"
-                label="Primeiro vencimento"
-                class="app-field"
-                :rules="[required()]"
-              />
-            </div>
-
-            <div class="col-12 col-md-4">
-              <q-select
-                v-model="model.recurrence"
-                outlined
-                emit-value
-                map-options
-                label="Recorrência"
-                class="app-field"
-                :options="recurrenceOptions"
-              />
-            </div>
-
-            <div class="col-12 col-md-4" v-if="model.recurrence === 'installment'">
-              <q-input
-                v-model.number="model.totalInstallments"
-                outlined
-                type="number"
-                label="Quantidade de parcelas"
-                class="app-field"
-              />
-            </div>
-
             <div class="col-12">
               <q-toggle
                 v-model="model.active"
@@ -463,9 +462,10 @@ import { FinancialType } from '@/shared/domain/types/FinancialType'
 import { StatusType, StatusTypeLabel } from '../types/StatusType'
 import { CategorySelect } from '@/shared/domain/interfaces/CategorySelect'
 import { categoryService } from '@/modules/categories/services/category.service'
-
-
-
+import { BankAccountSelect } from '@/shared/domain/interfaces/BankAccountSelect'
+import { bankAccountService } from '@/modules/bank-accounts/services/bank-account.service'
+import { personService } from '@/modules/persons/services/person.service'
+import { PersonSelect } from '@/shared/domain/interfaces/PersonSelect'
 
 // Interface estrita para os objetos do Quasar Select
 interface CategoryOption {
@@ -635,80 +635,6 @@ const formDialog = ref(false)
 const form = ref()
 
 const rows = ref<ScheduleItem[]>([])
-//   {
-//     id: '1',
-//     financialType: 'expense',
-//     description: 'Conta de energia',
-//     amount: 350,
-//     categoryId: 'moradia',
-//     categoryName: 'Moradia',
-//     subcategoryName: 'Contas',
-//     personId: 'familia',
-//     personName: 'Família',
-//     dueDate: '2026-05-15',
-//     recurrenceType: 'monthly',
-//     active: true,
-//     status: 'pending',
-//   },
-//   {
-//     id: '2',
-//     financialType: 'expense',
-//     description: 'Parcela Peugeot 208',
-//     amount: 1450,
-//     categoryId: 'transporte',
-//     categoryName: 'Transporte',
-//     subcategoryName: 'Financiamento',
-//     personId: 'danilo',
-//     personName: 'Danilo',
-//     dueDate: '2026-05-10',
-//     recurrenceType: 'monthly',
-//     active: true,
-//     status: 'pending',
-//   },
-//   {
-//     id: '3',
-//     financialType: 'expense',
-//     description: 'Netflix',
-//     amount: 55.9,
-//     categoryId: 'assinaturas',
-//     categoryName: 'Assinaturas',
-//     subcategoryName: 'Streaming',
-//     personId: 'familia',
-//     personName: 'Família',
-//     dueDate: '2026-05-12',
-//     recurrenceType: 'monthly',
-//     active: true,
-//     status: 'pending',
-//   },
-//   {
-//     id: '4',
-//     financialType: 'income',
-//     description: 'Salário GEAP',
-//     amount: 8000,
-//     categoryId: 'salario',
-//     categoryName: 'Salário',
-//     personId: 'danilo',
-//     personName: 'Danilo',
-//     dueDate: '2026-05-10',
-//     recurrenceType: 'monthly',
-//     active: true,
-//     status: 'pending',
-//   },
-//   {
-//     id: '5',
-//     financialType: 'income',
-//     description: 'Recebimento empréstimo',
-//     amount: 500,
-//     categoryId: 'emprestimos',
-//     categoryName: 'Empréstimos recebidos',
-//     dueDate: '2026-05-20',
-//     recurrenceType: 'installments',
-//     totalInstallments: 2,
-//     currentInstallment: 1,
-//     active: true,
-//     status: 'pending',
-//   },
-// ])
 
 const model = ref<FutureEntryForm>({
   id: null,
@@ -732,26 +658,19 @@ const columns: QTableColumn[] = [
   { name: 'actions', label: 'Ações', field: 'actions', align: 'center', sortable: false },
 ]
 
-const recurrenceOptions = [
-  { label: 'Sem recorrência', value: 'none' },
-  { label: 'Mensal', value: 'monthly' },
-  { label: 'Parcelado', value: 'installments' },
-]
+const recurrenceOptions = Object.entries(RecurrenceTypeLabel).map(([key, value]) => ({
+  value: key as RecurrenceType,
+  label: value
+}));
 
-const categoryOptions = [
-  { label: 'Moradia', value: 'moradia' },
-  { label: 'Transporte', value: 'transporte' },
-  { label: 'Assinaturas', value: 'assinaturas' },
-  { label: 'Salário', value: 'salario' },
-  { label: 'Empréstimos recebidos', value: 'emprestimos' },
-]
+// const recurrenceOptions = [
+//   { label: 'Sem recorrência', value: 'none' },
+//   { label: 'Mensal', value: 'monthly' },
+//   { label: 'Parcelado', value: 'installments' },
+// ]
 
-const personOptions = [
-  { label: 'Geral/Família', value: 'familia' },
-  { label: 'Danilo', value: 'danilo' },
-  { label: 'Adriana', value: 'adriana' },
-  { label: 'Lucas', value: 'lucas' },
-]
+const bankAccountOptions = ref<Array<BankAccountSelect>>([]);
+const personOptions = ref<Array<PersonSelect>>([]);
 
 const filteredRows = computed(() => {
   return rows.value.filter((item) => item.type === financialType.value)
@@ -872,15 +791,27 @@ async function loadSchedules() {
 
 async function loadCategoriesSelect() {
   try {
-    rawCategories.value = await categoryService.getCategorySelect();
-  } catch (error) {
+    rawCategories.value = await categoryService.getSelect();
+  } catch (error) {}
+}
 
-  }
+async function loadBankAccountsSelect() {
+  try {
+    bankAccountOptions.value = await bankAccountService.getSelect();
+  } catch (error) {}
+}
+
+async function loadPersonsSelect() {
+  try {
+    personOptions.value = await personService.getSelect();
+  } catch (error) {}
 }
 
 onMounted(() => {
   loadSchedules();
   loadCategoriesSelect();
+  loadBankAccountsSelect();
+  loadPersonsSelect();
 });
 </script>
 
