@@ -305,7 +305,7 @@
             </div>
             <div class="col-12 col-md-4">
               <q-select
-                v-model="model.personId"
+                v-model="model.bankAccount"
                 outlined
                 emit-value
                 map-options
@@ -317,7 +317,7 @@
             </div>
             <div class="col-12 col-md-4">
               <q-select
-                v-model="model.personId"
+                v-model="model.person"
                 outlined
                 emit-value
                 map-options
@@ -332,7 +332,7 @@
                 outlined
                 clearable
                 label="Primeiro vencimento"
-                v-model="model.dueDate"
+                v-model="model.startingOn"
                 mask="##/##/####"
                 :rules="[
                   required('Informe sua data de nascimento')
@@ -340,7 +340,7 @@
                 <template v-slot:append>
                   <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="model.dueDate" mask="DD/MM/YYYY">
+                      <q-date v-model="model.startingOn" mask="DD/MM/YYYY">
                         <div class="row items-center justify-end">
                           <q-btn v-close-popup label="Close" color="primary" flat />
                         </div>
@@ -352,10 +352,9 @@
             </div>
             <div class="col-12 col-md-8">
               <q-select
-                v-model="model.categoryId"
+                v-model="model.category"
                 :options="filteredOptions"
                 outlined
-                emit-value
                 map-options
                 use-input
                 input-debounce="300"
@@ -363,6 +362,7 @@
                 class="app-field"
                 clearable
                 @filter="filterFn"
+                @update:model-value="loadTags"
               >
                 <!-- Como o item aparece DEPOIS de selecionado -->
                 <template v-slot:selected-item="scope">
@@ -408,14 +408,14 @@
             </div>
             <div class="col-12 col-md-4">
               <q-select
-                v-model="model.personId"
+                v-model="model.tag"
                 outlined
                 emit-value
                 map-options
                 clearable
                 label="Tag"
                 class="app-field"
-                :options="personOptions"
+                :options="tagOptions"
               />
             </div>
             <div class="col-12">
@@ -456,7 +456,7 @@ import { SharedRules } from '@/shared/domain/validation/form-rules'
 import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 import { notify } from '@/shared/utils/notify.utils'
 import { scheduleService } from '../services/schedule.services'
-import { ScheduleItem } from '../models/schedule.model'
+import { ScheduleForm, ScheduleItem, CategoryOption } from '../models/schedule.model'
 import { RecurrenceType, RecurrenceTypeLabel } from '../types/RecurrenceType'
 import { FinancialType } from '@/shared/domain/types/FinancialType'
 import { StatusType, StatusTypeLabel } from '../types/StatusType'
@@ -466,16 +466,6 @@ import { BankAccountSelect } from '@/shared/domain/interfaces/BankAccountSelect'
 import { bankAccountService } from '@/modules/bank-accounts/services/bank-account.service'
 import { personService } from '@/modules/persons/services/person.service'
 import { PersonSelect } from '@/shared/domain/interfaces/PersonSelect'
-
-// Interface estrita para os objetos do Quasar Select
-interface CategoryOption {
-  label: string        // Usado internamente pelo Quasar para busca textual completa
-  pureLabel: string    // Apenas o nome limpo (ex: "Smartphones")
-  value: string | number
-  disable?: boolean
-  isSub: boolean
-  parentName?: string  // Nome da categoria pai (ex: "Eletrônicos")
-}
 
 // 1. Dados brutos (Exemplo baseado na estrutura padrão)
 const rawCategories = ref<CategorySelect[]>([]);
@@ -516,7 +506,8 @@ const flattenedOptions = computed<CategoryOption[]>(() => {
         pureLabel: cat.name,
         value: cat.id,
         disable: true,
-        isSub: false
+        isSub: false,
+        tags: cat.tags,
       })
 
       cat.subCategories.forEach(sub => {
@@ -526,7 +517,8 @@ const flattenedOptions = computed<CategoryOption[]>(() => {
           pureLabel: sub.name,
           value: sub.id,
           isSub: true,
-          parentName: cat.name
+          parentName: cat.name,
+          tags: cat.tags,
         })
       })
     } else {
@@ -535,7 +527,8 @@ const flattenedOptions = computed<CategoryOption[]>(() => {
         label: cat.name.toLowerCase(),
         pureLabel: cat.name,
         value: cat.id,
-        isSub: false
+        isSub: false,
+        tags: cat.tags,
       })
     }
   })
@@ -589,11 +582,15 @@ const filterFn = (val: string, update: (callback: () => void) => void): void => 
 
 
 
+
+
 const installmentCount = computed(() => {
   return filteredRows.value.filter((item) => item.recurrence === 'installments').length
 })
 
 type FutureEntryStatus = 'pending' | 'confirmed'
+
+
 
 interface FutureEntry {
   id: string
@@ -613,19 +610,6 @@ interface FutureEntry {
   status: FutureEntryStatus
 }
 
-interface FutureEntryForm {
-  id: string | null
-  type: FinancialType
-  description: string
-  amount: number
-  categoryId: string | null
-  personId: string | null
-  dueDate: string
-  recurrence: RecurrenceType
-  totalInstallments: number | null
-  active: boolean
-}
-
 const { required } = SharedRules
 
 const financialType = ref<FinancialType>('expense')
@@ -636,17 +620,19 @@ const form = ref()
 
 const rows = ref<ScheduleItem[]>([])
 
-const model = ref<FutureEntryForm>({
+const model = ref<ScheduleForm>({
   id: null,
   type: financialType.value,
   description: '',
   amount: 0,
-  categoryId: null,
-  personId: null,
-  dueDate: '',
+  category: null,
+  bankAccount: null,
+  person: null,
+  startingOn: null,
   recurrence: 'monthly',
-  totalInstallments: null,
+  installment: null,
   active: true,
+  tag: null,
 })
 
 const columns: QTableColumn[] = [
@@ -671,6 +657,7 @@ const recurrenceOptions = Object.entries(RecurrenceTypeLabel).map(([key, value])
 
 const bankAccountOptions = ref<Array<BankAccountSelect>>([]);
 const personOptions = ref<Array<PersonSelect>>([]);
+const tagOptions = ref<Array<string>>([]);
 
 const filteredRows = computed(() => {
   return rows.value.filter((item) => item.type === financialType.value)
@@ -706,12 +693,14 @@ function newFutureEntry() {
     type: financialType.value,
     description: '',
     amount: 0,
-    categoryId: null,
-    personId: null,
-    dueDate: '',
+    category: null,
+    person: null,
+    startingOn: '',
     recurrence: 'monthly',
-    totalInstallments: null,
+    installment: null,
     active: true,
+    bankAccount: null,
+    tag: null,
   }
 
   formDialog.value = true
@@ -723,12 +712,15 @@ function editRow(row: FutureEntry) {
     type: row.type,
     description: row.description,
     amount: row.amount,
-    categoryId: row.categoryId,
-    personId: row.personId || null,
-    dueDate: row.dueDate,
+    category: null,
+    person: row.personId || null,
+    startingOn: row.dueDate,
     recurrence: row.recurrence,
-    totalInstallments: row.totalInstallments || null,
+    //installment: row.totalInstallments || null,
+    installment: null,
     active: row.active,
+    bankAccount: null,
+    tag: null,
   }
 
   formDialog.value = true
@@ -805,6 +797,19 @@ async function loadPersonsSelect() {
   try {
     personOptions.value = await personService.getSelect();
   } catch (error) {}
+}
+
+function loadTags() {
+  try {
+    model.value.tag = '';
+    tagOptions.value = [];
+
+    if (model.value.category?.tags) {
+      tagOptions.value = model.value.category.tags;
+    }
+  } catch (error) {
+
+  }
 }
 
 onMounted(() => {

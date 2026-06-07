@@ -6,6 +6,7 @@ export interface SubCategoriesItem {
 export interface CategorySelect {
   id: string;
   name: string;
-  subCategories: SubCategoriesItem[]
+  subCategories: SubCategoriesItem[];
+  tags: [];
 }
 
