@@ -2,7 +2,7 @@ import http from '@/shared/infrastructure/http/http'
 import { BankAccountList, BankAccountForm } from '../models/bank-account.model'
 import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse'
 import { CreateBankAccountCommand, UpdateBankAccountCommand } from '../models/bank-account.command'
-import { BankAccountSelect } from '@/shared/domain/interfaces/BankAccountSelect';
+import { SelectOptions } from '@/shared/dtos/select-options';
 
 const module = 'bank-accounts';
 
@@ -29,8 +29,8 @@ export const bankAccountService = {
     await http.delete(`${module}/${id}`);
   },
 
-  async getSelect(): Promise<BankAccountSelect[]> {
-    const { data } = await http.get<ApiResponse<BankAccountSelect[]>>(`${module}/select`);
+  async getSelect(): Promise<SelectOptions[]> {
+    const { data } = await http.get<ApiResponse<SelectOptions[]>>(`${module}/select`);
     return data.data;
   }
 }

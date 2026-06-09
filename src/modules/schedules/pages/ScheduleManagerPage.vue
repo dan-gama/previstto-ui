@@ -310,9 +310,12 @@
                 emit-value
                 map-options
                 clearable
+                use-input
+                input-debounce="300"
                 label="Conta bancária"
                 class="app-field"
                 :options="bankAccountOptions"
+                @filter="(val, update) => filterFn(val, update, bankAccountOptionsOriginal, (v) => bankAccountOptions = v)"
               />
             </div>
             <div class="col-12 col-md-4">
@@ -322,9 +325,12 @@
                 emit-value
                 map-options
                 clearable
+                use-input
+                input-debounce="300"
                 label="Persona"
                 class="app-field"
                 :options="personOptions"
+                @filter="(val, update) => filterFn(val, update, personOptionsOriginal, (v) => personOptions = v)"
               />
             </div>
             <div class="col-12 col-md-4">
@@ -361,7 +367,7 @@
                 label="Categoria"
                 class="app-field"
                 clearable
-                @filter="filterFn"
+                @filter="filterFnCategory"
                 @update:model-value="loadTags"
               >
                 <!-- Como o item aparece DEPOIS de selecionado -->
@@ -413,9 +419,12 @@
                 emit-value
                 map-options
                 clearable
+                use-input
+                input-debounce="300"
                 label="Tag"
                 class="app-field"
                 :options="tagOptions"
+                @filter="(val, update) => filterFn(val, update, tagOptionsOriginal, (v) => tagOptions = v)"
               />
             </div>
             <div class="col-12">
@@ -462,35 +471,16 @@ import { FinancialType } from '@/shared/domain/types/FinancialType'
 import { StatusType, StatusTypeLabel } from '../types/StatusType'
 import { CategorySelect } from '@/shared/domain/interfaces/CategorySelect'
 import { categoryService } from '@/modules/categories/services/category.service'
-import { BankAccountSelect } from '@/shared/domain/interfaces/BankAccountSelect'
 import { bankAccountService } from '@/modules/bank-accounts/services/bank-account.service'
 import { personService } from '@/modules/persons/services/person.service'
-import { PersonSelect } from '@/shared/domain/interfaces/PersonSelect'
+import { useSelectFilter } from '@/shared/utils/filter-select'
+import { SelectOptions } from '@/shared/dtos/select-options'
+import { ScheduleMapper } from '../mappers/schedule.mapper'
+
+const { filterFn } = useSelectFilter();
 
 // 1. Dados brutos (Exemplo baseado na estrutura padrão)
 const rawCategories = ref<CategorySelect[]>([]);
-//   {
-//     id: 'eletronicos',
-//     nome: 'Eletrônicos',
-//     subcategorias: [
-//       { id: 'smartphones', nome: 'Smartphones' },
-//       { id: 'notebooks', nome: 'Notebooks' }
-//     ]
-//   },
-//   {
-//     id: 'livros',
-//     nome: 'Livros', // Sem subcategorias (Selecionável)
-//     subcategorias: []
-//   },
-//   {
-//     id: 'roupas',
-//     nome: 'Roupas',
-//     subcategorias: [
-//       { id: 'camisetas', nome: 'Camisetas' },
-//       { id: 'calcas', nome: 'Calças' }
-//     ]
-//   }
-// ]
 
 // 2. Transforma a árvore em uma lista plana adaptada
 const flattenedOptions = computed<CategoryOption[]>(() => {
@@ -560,7 +550,7 @@ const filteredOptions = computed<CategoryOption[]>(() => {
 })
 
 // 5. Função de Filtro exigida pelo Quasar (com tipagem estrita contra ESLint)
-const filterFn = (val: string, update: (callback: () => void) => void): void => {
+const filterFnCategory = (val: string, update: (callback: () => void) => void): void => {
   update(() => {
     searchFilter.value = val
   })
@@ -649,15 +639,12 @@ const recurrenceOptions = Object.entries(RecurrenceTypeLabel).map(([key, value])
   label: value
 }));
 
-// const recurrenceOptions = [
-//   { label: 'Sem recorrência', value: 'none' },
-//   { label: 'Mensal', value: 'monthly' },
-//   { label: 'Parcelado', value: 'installments' },
-// ]
-
-const bankAccountOptions = ref<Array<BankAccountSelect>>([]);
-const personOptions = ref<Array<PersonSelect>>([]);
-const tagOptions = ref<Array<string>>([]);
+const bankAccountOptions = ref<Array<SelectOptions>>([]);
+const bankAccountOptionsOriginal = ref<Array<SelectOptions>>([]);
+const personOptions = ref<Array<SelectOptions>>([]);
+const personOptionsOriginal = ref<Array<SelectOptions>>([]);
+const tagOptions = ref<Array<SelectOptions>>([]);
+const tagOptionsOriginal = ref<Array<SelectOptions>>([]);
 
 const filteredRows = computed(() => {
   return rows.value.filter((item) => item.type === financialType.value)
@@ -733,9 +720,21 @@ async function onSubmit() {
   saving.value = true
 
   try {
-    notify.success('Lançamento futuro salvo com sucesso')
-    formDialog.value = false
+    // Formata o campo decimal
+    model.value.amount = Number(model.value.amount);
+
+    // Insert
+    if (!model.value.id) {
+      await scheduleService.create(ScheduleMapper.toCreate(model.value));
+    }
+
+    notify.success('Agendamento criado com sucesso.');
+
+    // Atualiza a lista de agendamento
+    loadSchedules();
+
   } finally {
+    formDialog.value = false
     saving.value = false
   }
 }
@@ -790,12 +789,14 @@ async function loadCategoriesSelect() {
 async function loadBankAccountsSelect() {
   try {
     bankAccountOptions.value = await bankAccountService.getSelect();
+    bankAccountOptionsOriginal.value = bankAccountOptions.value;
   } catch (error) {}
 }
 
 async function loadPersonsSelect() {
   try {
     personOptions.value = await personService.getSelect();
+    personOptionsOriginal.value = personOptions.value;
   } catch (error) {}
 }
 
@@ -805,7 +806,12 @@ function loadTags() {
     tagOptions.value = [];
 
     if (model.value.category?.tags) {
-      tagOptions.value = model.value.category.tags;
+      tagOptions.value = model.value.category.tags.map((m) => ({
+        label: m,
+        value: m,
+      }));
+
+      tagOptionsOriginal.value = tagOptions.value;
     }
   } catch (error) {
 

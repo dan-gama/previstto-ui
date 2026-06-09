@@ -2,7 +2,7 @@ import http from '@/shared/infrastructure/http/http';
 import { CreatePersonCommand, UpdatePersonCommand } from '../models/person.command';
 import { PersonForm, PersonList } from '../models/person.model';
 import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse';
-import { PersonSelect } from '@/shared/domain/interfaces/PersonSelect';
+import { SelectOptions } from '@/shared/dtos/select-options';
 
 const module = 'persons';
 
@@ -29,8 +29,8 @@ export const personService = {
     return data.data;
   },
 
-  async getSelect(): Promise<PersonSelect[]> {
-    const { data } = await http.get<ApiResponse<PersonSelect[]>>(`${module}/select`);
+  async getSelect(): Promise<SelectOptions[]> {
+    const { data } = await http.get<ApiResponse<SelectOptions[]>>(`${module}/select`);
     return data.data;
   }
 }
