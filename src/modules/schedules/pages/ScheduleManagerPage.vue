@@ -655,7 +655,8 @@ const totalAmount = computed(() => {
 })
 
 const pendingCount = computed(() => {
-  return filteredRows.value.filter((item) => ['pending', 'overdue'].includes(item.status)).length
+  // return filteredRows.value.filter((item) => ['pending', 'overdue'].includes(item.status)).length
+  return 0;
 })
 
 const recurringCount = computed(() => {
