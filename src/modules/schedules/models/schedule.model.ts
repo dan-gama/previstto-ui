@@ -35,10 +35,8 @@ export interface ScheduleItem {
   subCategoryName: string | null;
   categoryName: CategoryOption;
   tag: string | null;
-  dueDate: Date;
+  startingOn: Date;
   amount: number;
   recurrence: string;
-  status: string;
-  overdue: boolean;
   active: boolean;
 }

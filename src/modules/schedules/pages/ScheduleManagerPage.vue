@@ -184,7 +184,7 @@
           </q-td>
         </template>
 
-        <template #body-cell-status="props">
+        <template #body-cell-active="props">
           <q-td :props="props">
             <q-badge
               rounded
@@ -628,7 +628,7 @@ const model = ref<ScheduleForm>({
 const columns: QTableColumn[] = [
   { name: 'description', label: 'Lançamento', field: 'description', align: 'left', sortable: true },
   { name: 'amount', label: 'Valor', field: 'amount', align: 'left', sortable: true },
-  { name: 'dueDate', label: 'Vencimento', field: 'dueDate', align: 'left', sortable: true },
+  { name: 'startingOn', label: 'Começando em', field: 'startingOn', align: 'left', sortable: true },
   { name: 'recurrence', label: 'Recorrência', field: 'recurrenceType', align: 'left' },
   { name: 'status', label: 'Status', field: 'status', align: 'left' },
   { name: 'actions', label: 'Ações', field: 'actions', align: 'center', sortable: false },
