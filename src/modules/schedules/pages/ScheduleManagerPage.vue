@@ -188,14 +188,14 @@
           <q-td :props="props">
             <q-badge
               rounded
-              :class="['pending', 'overdue'].includes(props.row.status) ? 'status-pending' : 'status-active'"
+              :class="props.value ? 'status-active' : 'status-inactive'"
             >
               <q-icon
-                :name="['pending', 'overdue'].includes(props.row.status) ? 'schedule' : 'check_circle'"
+                :name="props.value ? 'check_circle' : 'cancel'"
                 size="14px"
                 class="q-mr-xs"
               />
-              {{ StatusTypeLabel[props.row.status as StatusType] }}
+              {{ props.value ? 'Ativo' : 'Inativo' }}
             </q-badge>
           </q-td>
         </template>
@@ -630,7 +630,7 @@ const columns: QTableColumn[] = [
   { name: 'amount', label: 'Valor', field: 'amount', align: 'left', sortable: true },
   { name: 'startingOn', label: 'Começando em', field: 'startingOn', align: 'left', sortable: true },
   { name: 'recurrence', label: 'Recorrência', field: 'recurrenceType', align: 'left' },
-  { name: 'status', label: 'Status', field: 'status', align: 'left' },
+  { name: 'active', label: 'Status', field: 'active', align: 'left' },
   { name: 'actions', label: 'Ações', field: 'actions', align: 'center', sortable: false },
 ]
 
