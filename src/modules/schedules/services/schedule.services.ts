@@ -1,6 +1,6 @@
 import http from '@/shared/infrastructure/http/http'
 import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse';
-import { ScheduleItem } from '../models/schedule.model';
+import { ScheduleForm, ScheduleItem } from '../models/schedule.model';
 import { CreateScheduleCommand, UpdateScheduleCommand } from '../models/schedule.command';
 
 const module = 'schedules'
@@ -22,4 +22,9 @@ export const scheduleService = {
     const { data } = await http.get<ApiResponse<ScheduleItem[]>>(`${module}/grid`);
     return data.data;
   },
+
+  async findById(id: string): Promise<ScheduleForm> {
+    const { data } = await http.get<ApiResponse<ScheduleForm>>(`${module}/${id}`)
+    return data.data;
+  }
 }

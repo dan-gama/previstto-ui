@@ -213,7 +213,7 @@
               icon="edit"
               color="primary"
               class="action-btn"
-              @click="editRow(props.row)"
+              @click="editRow(props.row.id)"
             >
               <q-tooltip>Editar</q-tooltip>
             </q-btn>
@@ -476,6 +476,7 @@ import { personService } from '@/modules/persons/services/person.service'
 import { useSelectFilter } from '@/shared/utils/filter-select'
 import { SelectOptions } from '@/shared/dtos/select-options'
 import { ScheduleMapper } from '../mappers/schedule.mapper'
+import { formatDateInput } from '@/shared/utils/date.utils'
 
 const { filterFn } = useSelectFilter();
 
@@ -694,22 +695,11 @@ function newFutureEntry() {
   formDialog.value = true
 }
 
-function editRow(row: FutureEntry) {
-  model.value = {
-    id: row.id,
-    type: row.type,
-    description: row.description,
-    amount: row.amount,
-    category: null,
-    person: row.personId || null,
-    startingOn: row.dueDate,
-    recurrence: row.recurrence,
-    //installment: row.totalInstallments || null,
-    installment: null,
-    active: row.active,
-    bankAccount: null,
-    tag: null,
-  }
+async function editRow(id: string) {
+  model.value = await scheduleService.findById(id);
+
+  // Formata a data padrão input
+  model.value.startingOn = formatDateInput(model.value.startingOn);
 
   formDialog.value = true
 }
