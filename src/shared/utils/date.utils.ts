@@ -1,3 +1,6 @@
+/*
+  date: Recebe a data no formate Date (yyyy-MM-dd)
+*/
 export function formatDateInput(date: Date | string | null): string {
   if (!date) return '';
 
@@ -23,4 +26,23 @@ export function formatDateInput(date: Date | string | null): string {
   console.log(date);
 
   return `${day}${month}${year}`;
+}
+/*
+  dateStr: Receber a data no formato ddMMyyyy
+*/
+export function parseInputToDate(dateStr: string | null): Date | null {
+  if (!dateStr) return null;
+
+  // Remove barras, traços ou espaços para padronizar apenas com números
+  const cleanStr = dateStr.replace(/\D/g, '');
+
+  if (cleanStr.length !== 8) return null;
+
+  const day = parseInt(cleanStr.substring(0, 2), 10);
+  const month = parseInt(cleanStr.substring(2, 4), 10) - 1;
+  const year = parseInt(cleanStr.substring(4, 8), 10);
+
+  const dateObj = new Date(year, month, day);
+
+  return isNaN(dateObj.getTime()) ? null : dateObj;
 }

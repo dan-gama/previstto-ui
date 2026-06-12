@@ -360,13 +360,14 @@
               <q-select
                 v-model="model.category"
                 :options="filteredOptions"
+                emit-value
                 outlined
                 map-options
                 use-input
+                clearable
                 input-debounce="300"
                 label="Categoria"
                 class="app-field"
-                clearable
                 @filter="filterFnCategory"
                 @update:model-value="loadTags"
               >
@@ -451,9 +452,30 @@
             class="save-btn"
             @click="onSubmit"
           />
+
+          <q-btn
+            flat
+            round
+            dense
+            icon="delete"
+            color="negative"
+            class="action-btn"
+            v-if="model.id"
+            @click="onDelete(model.id)"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <confirm-delete-dialog
+      v-model="deleteDialog"
+      :loading="deleting"
+      title="Excluir agendamento"
+      message="Tem certeza que deseja excluir este agendamento?"
+      description="Todas as informações vinculadas a este registro poderão ser afetadas."
+      confirm-label="Excluir"
+      @confirm="confirmDelete"
+    />
   </q-page>
 </template>
 
@@ -462,13 +484,11 @@ import { vDrag } from '@/components/vDrag/v-drag'
 import { computed, onMounted, ref } from 'vue'
 import type { QTableColumn } from 'quasar'
 import { SharedRules } from '@/shared/domain/validation/form-rules'
-import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 import { notify } from '@/shared/utils/notify.utils'
 import { scheduleService } from '../services/schedule.services'
 import { ScheduleForm, ScheduleItem, CategoryOption } from '../models/schedule.model'
 import { RecurrenceType, RecurrenceTypeLabel } from '../types/RecurrenceType'
 import { FinancialType } from '@/shared/domain/types/FinancialType'
-import { StatusType, StatusTypeLabel } from '../types/StatusType'
 import { CategorySelect } from '@/shared/domain/interfaces/CategorySelect'
 import { categoryService } from '@/modules/categories/services/category.service'
 import { bankAccountService } from '@/modules/bank-accounts/services/bank-account.service'
@@ -477,17 +497,24 @@ import { useSelectFilter } from '@/shared/utils/filter-select'
 import { SelectOptions } from '@/shared/dtos/select-options'
 import { ScheduleMapper } from '../mappers/schedule.mapper'
 import { formatDateInput } from '@/shared/utils/date.utils'
+import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
+import ConfirmDeleteDialog from '@/shared/components/ConfirmDeleteDialog/ConfirmDeleteDialog.vue'
 
 const { filterFn } = useSelectFilter();
 
+const deleteDialog = ref(false);
+const deleting = ref(false);
+const selectedDeleteId = ref<string | null>(null);
+
+
 // 1. Dados brutos (Exemplo baseado na estrutura padrão)
-const rawCategories = ref<CategorySelect[]>([]);
+// const rawCategories = ref<CategorySelect[]>([]);
 
 // 2. Transforma a árvore em uma lista plana adaptada
 const flattenedOptions = computed<CategoryOption[]>(() => {
   const options: CategoryOption[] = []
 
-  rawCategories.value.forEach((cat: CategorySelect) => {
+  categorySelects.value.forEach((cat: CategorySelect) => {
     const hasSub = cat.subCategories && cat.subCategories.length > 0
 
     if (hasSub) {
@@ -537,7 +564,7 @@ const filteredOptions = computed<CategoryOption[]>(() => {
   if (!needle) return flattenedOptions.value
 
   // Passo 1: Verifica se o usuário digitou o nome de alguma Categoria Pai inteira ou parcial
-  const exactParentMatch = rawCategories.value.find((cat: CategorySelect) =>
+  const exactParentMatch = categorySelects.value.find((cat: CategorySelect) =>
     cat.name.toLowerCase().includes(needle) && cat.subCategories?.length > 0
   )
 
@@ -646,6 +673,8 @@ const personOptions = ref<Array<SelectOptions>>([]);
 const personOptionsOriginal = ref<Array<SelectOptions>>([]);
 const tagOptions = ref<Array<SelectOptions>>([]);
 const tagOptionsOriginal = ref<Array<SelectOptions>>([]);
+const categorySelects = ref<Array<CategorySelect>>([]);
+const categorySelectsOriginal = ref<Array<CategorySelect>>([]);
 
 const filteredRows = computed(() => {
   return rows.value.filter((item) => item.type === financialType.value)
@@ -717,9 +746,12 @@ async function onSubmit() {
     // Insert
     if (!model.value.id) {
       await scheduleService.create(ScheduleMapper.toCreate(model.value));
+      notify.success('Agendamento criado com sucesso.');
+    // Update
+    } else {
+      await scheduleService.update(model.value.id, ScheduleMapper.toUpdate(model.value));
+      notify.success('Agendamento atualizado com sucesso.');
     }
-
-    notify.success('Agendamento criado com sucesso.');
 
     // Atualiza a lista de agendamento
     loadSchedules();
@@ -773,7 +805,8 @@ async function loadSchedules() {
 
 async function loadCategoriesSelect() {
   try {
-    rawCategories.value = await categoryService.getSelect();
+    categorySelects.value = await categoryService.getSelect();
+    categorySelectsOriginal.value = categorySelects.value;
   } catch (error) {}
 }
 
@@ -793,19 +826,67 @@ async function loadPersonsSelect() {
 
 function loadTags() {
   try {
-    model.value.tag = '';
+    model.value.tag = null;
     tagOptions.value = [];
+    tagOptionsOriginal.value = [];
 
-    if (model.value.category?.tags) {
-      tagOptions.value = model.value.category.tags.map((m) => ({
-        label: m,
-        value: m,
-      }));
+    if (!model.value.category) {
+      return;
+    }
 
-      tagOptionsOriginal.value = tagOptions.value;
+    for (const category of categorySelectsOriginal.value) {
+      // 1. Verifica se o ID pertence à categoria principal
+      if (category.id === model.value.category) {
+        tagOptions.value = category.tags.map((m) => ({
+          label: m,
+          value: m
+        }));
+
+        tagOptionsOriginal.value = tagOptions.value;
+        return
+      }
+
+      // 2. Verifica se o ID pertence a alguma subcategoria
+      const hasSubCategory = category.subCategories?.some(sub => sub.id === model.value.category);
+      if (hasSubCategory) {
+        tagOptions.value = category.tags.map((m) => ({
+          label: m,
+          value: m
+        }));
+
+        tagOptionsOriginal.value = tagOptions.value;
+        return
+      }
     }
   } catch (error) {
 
+  }
+}
+
+async function onDelete(id: string) {
+  selectedDeleteId.value = id;
+  deleteDialog.value = true;
+}
+
+async function confirmDelete() {
+  if (!selectedDeleteId.value) return;
+
+  deleting.value = true;
+
+  try {
+    await scheduleService.delete(selectedDeleteId.value);
+
+    deleteDialog.value = false;
+    formDialog.value = false;
+    selectedDeleteId.value = null;
+
+    // Atualiza a lista de agendamento
+    loadSchedules();
+
+    notify.success('Conta bancária excluída com sucesso');
+
+  } finally {
+    deleting.value = false;
   }
 }
 

@@ -21,7 +21,7 @@ export interface ScheduleForm {
   startingOn: string | null;
   amount: number;
   bankAccount: string | null;
-  category: CategoryOption | null;
+  category: string | null;
   tag: string | null;
   person: string | null;
   installment: Installment | null;

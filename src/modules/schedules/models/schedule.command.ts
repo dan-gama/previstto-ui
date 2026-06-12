@@ -6,7 +6,7 @@ export type CreateScheduleCommand = {
   type: FinancialType;
   description: string;
   recurrence: RecurrenceType;
-  startingOn: string | Date | null;
+  startingOn: Date | null;
   amount: number;
   bankAccount: string | null;
   category: string;
@@ -18,7 +18,7 @@ export type CreateScheduleCommand = {
 
 export type UpdateScheduleCommand = {
   description: string;
-  startingOn: string | Date | null;
+  startingOn: Date | null;
   amount: number;
   bankAccount: string | null;
   category: string;
