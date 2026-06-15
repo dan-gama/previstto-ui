@@ -314,8 +314,8 @@
                 input-debounce="300"
                 label="Conta bancária"
                 class="app-field"
-                :options="bankAccountOptions"
-                @filter="(val, update) => filterFn(val, update, bankAccountOptionsOriginal, (v) => bankAccountOptions = v)"
+                :options="transactionSourceOptions"
+                @filter="(val, update) => filterFn(val, update, transactionSourceOptionsOriginal, (v) => transactionSourceOptions = v)"
               />
             </div>
             <div class="col-12 col-md-4">
@@ -499,6 +499,7 @@ import { ScheduleMapper } from '../mappers/schedule.mapper'
 import { formatDateInput } from '@/shared/utils/date.utils'
 import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 import ConfirmDeleteDialog from '@/shared/components/ConfirmDeleteDialog/ConfirmDeleteDialog.vue'
+import { transactionService } from '@/modules/transactions/services/transaction.service'
 
 const { filterFn } = useSelectFilter();
 
@@ -667,8 +668,10 @@ const recurrenceOptions = Object.entries(RecurrenceTypeLabel).map(([key, value])
   label: value
 }));
 
-const bankAccountOptions = ref<Array<SelectOptions>>([]);
-const bankAccountOptionsOriginal = ref<Array<SelectOptions>>([]);
+// const bankAccountOptions = ref<Array<SelectOptions>>([]);
+// const bankAccountOptionsOriginal = ref<Array<SelectOptions>>([]);
+const transactionSourceOptions = ref<Array<SelectOptions>>([]);
+const transactionSourceOptionsOriginal = ref<Array<SelectOptions>>([]);
 const personOptions = ref<Array<SelectOptions>>([]);
 const personOptionsOriginal = ref<Array<SelectOptions>>([]);
 const tagOptions = ref<Array<SelectOptions>>([]);
@@ -810,18 +813,27 @@ async function loadCategoriesSelect() {
   } catch (error) {}
 }
 
-async function loadBankAccountsSelect() {
-  try {
-    bankAccountOptions.value = await bankAccountService.getSelect();
-    bankAccountOptionsOriginal.value = bankAccountOptions.value;
-  } catch (error) {}
-}
+// async function loadBankAccountsSelect() {
+//   try {
+//     bankAccountOptions.value = await bankAccountService.getSelect();
+//     bankAccountOptionsOriginal.value = bankAccountOptions.value;
+//   } catch (error) {}
+// }
 
 async function loadPersonsSelect() {
   try {
     personOptions.value = await personService.getSelect();
     personOptionsOriginal.value = personOptions.value;
   } catch (error) {}
+}
+
+async function loadTransactionSourceSelect() {
+  try {
+    transactionSourceOptions.value = await transactionService.getTransactionSourceSelect();
+    transactionSourceOptionsOriginal.value = transactionSourceOptions.value;
+  } catch (error) {
+
+  }
 }
 
 function loadTags() {
@@ -893,7 +905,7 @@ async function confirmDelete() {
 onMounted(() => {
   loadSchedules();
   loadCategoriesSelect();
-  loadBankAccountsSelect();
+  loadTransactionSourceSelect();
   loadPersonsSelect();
 });
 </script>

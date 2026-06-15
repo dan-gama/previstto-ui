@@ -2,6 +2,8 @@ import http from '@/shared/infrastructure/http/http'
 import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse';
 import { ScheduleForm, ScheduleItem } from '../models/schedule.model';
 import { CreateScheduleCommand, UpdateScheduleCommand } from '../models/schedule.command';
+import { SelectOptions } from '@/shared/dtos/select-options';
+import { TransactionSourceSelect } from '@/shared/domain/interfaces/TransactionSourceSelect';
 
 const module = 'schedules'
 
