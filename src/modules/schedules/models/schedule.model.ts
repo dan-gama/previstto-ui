@@ -20,7 +20,7 @@ export interface ScheduleForm {
   recurrence: RecurrenceType;
   startingOn: string | null;
   amount: number;
-  bankAccount: string | null;
+  creditBank: string | null;
   category: string | null;
   tag: string | null;
   person: string | null;

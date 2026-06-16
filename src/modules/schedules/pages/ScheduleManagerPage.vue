@@ -305,7 +305,7 @@
             </div>
             <div class="col-12 col-md-4">
               <q-select
-                v-model="model.bankAccount"
+                v-model="model.creditBank"
                 outlined
                 emit-value
                 map-options
@@ -645,7 +645,7 @@ const model = ref<ScheduleForm>({
   description: '',
   amount: 0,
   category: null,
-  bankAccount: null,
+  creditBank: null,
   person: null,
   startingOn: null,
   recurrence: 'monthly',
@@ -720,7 +720,7 @@ function newFutureEntry() {
     recurrence: 'monthly',
     installment: null,
     active: true,
-    bankAccount: null,
+    creditBank: null,
     tag: null,
   }
 
@@ -812,13 +812,6 @@ async function loadCategoriesSelect() {
     categorySelectsOriginal.value = categorySelects.value;
   } catch (error) {}
 }
-
-// async function loadBankAccountsSelect() {
-//   try {
-//     bankAccountOptions.value = await bankAccountService.getSelect();
-//     bankAccountOptionsOriginal.value = bankAccountOptions.value;
-//   } catch (error) {}
-// }
 
 async function loadPersonsSelect() {
   try {

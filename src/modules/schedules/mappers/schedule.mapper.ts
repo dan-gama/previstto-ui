@@ -4,11 +4,14 @@ import { ScheduleForm } from "../models/schedule.model";
 
 export class ScheduleMapper {
   static toCreate(form: ScheduleForm): CreateScheduleCommand {
+    const sourceId = (form.type === 'expense') ? form.creditBank : form.category;
+    const destinationId = (form.type === 'expense') ? form.category : form.creditBank;
+
     return {
       active: form.active,
       amount: form.amount,
-      bankAccount: form.bankAccount,
-      category: form.category as string,
+      sourceId: sourceId ?? '',
+      destinationId: destinationId ?? '',
       description: form.description,
       installments: form.installment,
       person: form.person,
@@ -20,13 +23,14 @@ export class ScheduleMapper {
   }
 
   static toUpdate(form: ScheduleForm): UpdateScheduleCommand {
-    console.log(form.category);
+    const sourceId = (form.type === 'expense') ? form.creditBank : form.category;
+    const destinationId = (form.type === 'expense') ? form.category : form.creditBank;
 
     return {
       active: form.active,
       amount: form.amount,
-      bankAccount: form.bankAccount,
-      category: form.category as string,
+      sourceId: sourceId ?? '',
+      destinationId: destinationId ?? '',
       description: form.description,
       installments: form.installment,
       person: form.person,

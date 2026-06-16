@@ -8,8 +8,8 @@ export type CreateScheduleCommand = {
   recurrence: RecurrenceType;
   startingOn: Date | null;
   amount: number;
-  bankAccount: string | null;
-  category: string;
+  sourceId: string;
+  destinationId: string;
   tag: string | null;
   person: string | null;
   installments: Installment | null;
@@ -20,8 +20,8 @@ export type UpdateScheduleCommand = {
   description: string;
   startingOn: Date | null;
   amount: number;
-  bankAccount: string | null;
-  category: string;
+  sourceId: string;
+  destinationId: string;
   tag: string | null;
   person: string | null;
   installments: Installment | null;
