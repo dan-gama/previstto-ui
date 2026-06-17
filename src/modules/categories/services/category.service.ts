@@ -28,8 +28,8 @@ export const categoryService = {
     return data.data;
   },
 
-  async getSelect(): Promise<CategorySelect[]> {
-    const { data } = await http.get<ApiResponse<CategorySelect[]>>(`${module}/select`);
+  async getSelect(typeFinancial: string): Promise<CategorySelect[]> {
+    const { data } = await http.get<ApiResponse<CategorySelect[]>>(`${module}/select?typeFinancial=${typeFinancial}`);
     return data.data;
   }
 }

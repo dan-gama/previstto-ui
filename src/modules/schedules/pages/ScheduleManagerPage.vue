@@ -13,6 +13,7 @@
             { label: 'Despesas', value: 'expense', icon: 'trending_down' },
             { label: 'Receitas', value: 'income', icon: 'trending_up' },
           ]"
+          @update:model-value="loadCategoriesSelect"
         />
 
         <q-btn
@@ -808,7 +809,7 @@ async function loadSchedules() {
 
 async function loadCategoriesSelect() {
   try {
-    categorySelects.value = await categoryService.getSelect();
+    categorySelects.value = await categoryService.getSelect(financialType.value);
     categorySelectsOriginal.value = categorySelects.value;
   } catch (error) {}
 }
