@@ -492,7 +492,6 @@ import { RecurrenceType, RecurrenceTypeLabel } from '../types/RecurrenceType'
 import { FinancialType } from '@/shared/domain/types/FinancialType'
 import { CategorySelect } from '@/shared/domain/interfaces/CategorySelect'
 import { categoryService } from '@/modules/categories/services/category.service'
-import { bankAccountService } from '@/modules/bank-accounts/services/bank-account.service'
 import { personService } from '@/modules/persons/services/person.service'
 import { useSelectFilter } from '@/shared/utils/filter-select'
 import { SelectOptions } from '@/shared/dtos/select-options'
@@ -586,49 +585,9 @@ const filterFnCategory = (val: string, update: (callback: () => void) => void): 
   })
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const installmentCount = computed(() => {
   return filteredRows.value.filter((item) => item.recurrence === 'installments').length
 })
-
-type FutureEntryStatus = 'pending' | 'confirmed'
-
-
-
-interface FutureEntry {
-  id: string
-  type: FinancialType
-  description: string
-  amount: number
-  categoryId: string
-  categoryName: string
-  subcategoryName?: string
-  personId?: string | null
-  personName?: string | null
-  dueDate: string
-  recurrence: RecurrenceType
-  totalInstallments?: number | null
-  currentInstallment?: number | null
-  active: boolean
-  status: FutureEntryStatus
-}
 
 const { required } = SharedRules
 
@@ -669,8 +628,6 @@ const recurrenceOptions = Object.entries(RecurrenceTypeLabel).map(([key, value])
   label: value
 }));
 
-// const bankAccountOptions = ref<Array<SelectOptions>>([]);
-// const bankAccountOptionsOriginal = ref<Array<SelectOptions>>([]);
 const transactionSourceOptions = ref<Array<SelectOptions>>([]);
 const transactionSourceOptionsOriginal = ref<Array<SelectOptions>>([]);
 const personOptions = ref<Array<SelectOptions>>([]);
@@ -777,26 +734,14 @@ function formatDate(value: string) {
   return new Date(`${value}T00:00:00`).toLocaleDateString('pt-BR')
 }
 
-function formatRecurrence(row: FutureEntry) {
+function formatRecurrence(row: ScheduleItem) {
   if (row.recurrence === 'monthly') return 'Mensal'
 
-  if (row.recurrence === 'installment') {
-    return `${row.currentInstallment || 1}/${row.totalInstallments || '-'} parcelas`
-  }
+  // if (row.recurrence === 'installment') {
+  //   return `${row.currentInstallment || 1}/${row.totalInstallments || '-'} parcelas`
+  // }
 
   return 'Único'
-}
-
-function getDueText(row: FutureEntry) {
-  if (row.recurrence === 'monthly') {
-    return 'Recorrente mensal'
-  }
-
-  if (row.recurrence === 'installment') {
-    return 'Lançamento parcelado'
-  }
-
-  return 'Lançamento único'
 }
 
 async function loadSchedules() {
