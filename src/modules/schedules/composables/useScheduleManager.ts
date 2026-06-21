@@ -196,6 +196,7 @@ export function useScheduleManager() {
   async function editRow(id: string) {
     model.value = await scheduleService.findById(id)
     model.value.startingOn = formatDateInput(model.value.startingOn)
+    loadTags(true);
     formDialog.value = true
   }
 
@@ -220,8 +221,11 @@ export function useScheduleManager() {
     }
   }
 
-  function loadTags() {
-    model.value.tag = null
+  function loadTags(edit = false) {
+    if (!edit) {
+      model.value.tag = null
+    }
+
     tagOptions.value = []
     tagOptionsOriginal.value = []
 
