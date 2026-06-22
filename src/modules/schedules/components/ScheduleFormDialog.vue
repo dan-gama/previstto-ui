@@ -33,7 +33,16 @@
 
       <q-card-section class="dialog-body">
         <q-form ref="form" class="row q-col-gutter-md" greedy @submit.prevent="submitForm">
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-6">
+            <q-input
+              v-model="schedule.description"
+              outlined
+              label="Descricao"
+              class="app-field"
+              :rules="[required()]"
+            />
+          </div>
+          <div class="col-12 col-md-3">
             <q-select
               v-model="schedule.recurrence"
               outlined
@@ -44,16 +53,7 @@
               :options="recurrenceOptions"
             />
           </div>
-          <div class="col-12 col-md-4">
-            <q-input
-              v-model="schedule.description"
-              outlined
-              label="Descricao"
-              class="app-field"
-              :rules="[required()]"
-            />
-          </div>
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-3">
             <money-input
               v-model="schedule.amount"
               label="Valor (R$)"
@@ -61,7 +61,22 @@
               :rules="[required()]"
             />
           </div>
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-3">
+            <q-select
+              v-model="schedule.creditBank"
+              outlined
+              emit-value
+              map-options
+              clearable
+              use-input
+              input-debounce="300"
+              label="Cartão ou Crédito"
+              class="app-field"
+              :options="transactionSourceOptions"
+              @filter="filterTransactionSources"
+            />
+          </div>
+          <div class="col-12 col-md-5">
             <q-select
               v-model="schedule.creditBank"
               outlined
@@ -74,21 +89,6 @@
               class="app-field"
               :options="transactionSourceOptions"
               @filter="filterTransactionSources"
-            />
-          </div>
-          <div class="col-12 col-md-4">
-            <q-select
-              v-model="schedule.person"
-              outlined
-              emit-value
-              map-options
-              clearable
-              use-input
-              input-debounce="300"
-              label="Pessoa"
-              class="app-field"
-              :options="personOptions"
-              @filter="filterPersons"
             />
           </div>
           <div class="col-12 col-md-4">
@@ -181,6 +181,24 @@
               @filter="filterTags"
             />
           </div>
+          <div class="col-12 col-md-3">
+            <q-select
+              v-model="schedule.person"
+              outlined
+              emit-value
+              map-options
+              clearable
+              use-input
+              input-debounce="300"
+              label="Pessoa"
+              class="app-field"
+              :options="personOptions"
+              @filter="filterPersons"
+            />
+          </div>
+
+
+
           <div class="col-12">
             <q-toggle
               v-model="schedule.active"
