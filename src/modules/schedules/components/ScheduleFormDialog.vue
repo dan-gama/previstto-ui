@@ -249,15 +249,16 @@
 </template>
 
 <script setup lang="ts">
-import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 import { computed, ref, watch } from 'vue'
 import { vDrag } from '@/components/vDrag/v-drag'
 import { SelectOptions } from '@/shared/dtos/select-options'
 import { SharedRules } from '@/shared/domain/validation/form-rules'
 import { FinancialType } from '@/shared/domain/types/FinancialType'
 import { useSelectFilter } from '@/shared/utils/filter-select'
-import { CategoryOption, ScheduleForm } from '../models/schedule.model'
+import { ScheduleForm } from '../models/schedule.model'
 import { RecurrenceType } from '../types/RecurrenceType'
+import { CategoryOption } from '@/shared/domain/interfaces/CategorySelect'
+import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 
 const {decimalGreaterThanZero, required} = SharedRules
 
