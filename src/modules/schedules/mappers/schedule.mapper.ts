@@ -1,6 +1,6 @@
-import { parseInputToDate } from "@/shared/utils/date.utils";
-import { CreateScheduleCommand, UpdateScheduleCommand } from "../models/schedule.command";
-import { ScheduleForm } from "../models/schedule.model";
+import { parseInputToDate } from '@/shared/utils/date.utils';
+import { CreateScheduleCommand, UpdateScheduleCommand } from '../models/schedule.command';
+import { ScheduleForm } from '../models/schedule.model';
 
 export class ScheduleMapper {
   static toCreate(form: ScheduleForm): CreateScheduleCommand {

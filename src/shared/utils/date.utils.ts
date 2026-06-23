@@ -8,8 +8,8 @@ export function formatDateInput(date: Date | string | null): string {
 
   let dateObj: Date;
   if (typeof date === 'string') {
-    const needsTimeZoneFix = date.length === 10 && !date.includes("T");
-    dateObj = needsTimeZoneFix ? new Date(date + "T00:00:00") : new Date(date);
+    const needsTimeZoneFix = date.length === 10 && !date.includes('T');
+    dateObj = needsTimeZoneFix ? new Date(date + 'T00:00:00') : new Date(date);
   } else {
     dateObj = date;
   }
@@ -17,7 +17,7 @@ export function formatDateInput(date: Date | string | null): string {
   if (isNaN(dateObj.getTime())) return '';
 
   // Verifica se string original é UTC "Z"
-  const isUTC = typeof date === 'string' && date.includes("Z");
+  const isUTC = typeof date === 'string' && date.includes('Z');
 
   const day = String(isUTC ? dateObj.getUTCDate() : dateObj.getDate()).padStart(2, '0');
   const month = String(isUTC ? dateObj.getUTCMonth() + 1 : dateObj.getMonth() + 1).padStart(2, '0');
