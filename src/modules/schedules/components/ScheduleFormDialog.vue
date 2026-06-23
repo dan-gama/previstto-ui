@@ -58,7 +58,7 @@
               v-model="schedule.amount"
               label="Valor (R$)"
               class="app-field"
-              :rules="[required()]"
+              :rules="[decimalGreaterThanZero()]"
             />
           </div>
           <div class="col-12 col-md-9">
@@ -70,8 +70,9 @@
               clearable
               use-input
               input-debounce="300"
-              :label="transactionSourceLabel"
               class="app-field transaction-source-field"
+              :rules="[required('Informe a conta ou cartão de crédito')]"
+              :label="transactionSourceLabel"
               :options="transactionSourceOptions"
               @filter="filterTransactionSources"
             >
@@ -132,6 +133,7 @@
               input-debounce="300"
               label="Categoria"
               class="app-field"
+              :rules="[required('Informa a categoria da despesa/receita')]"
               @filter="filterCategoryOptions"
               @update:model-value="emit('load-tags')"
             >
@@ -247,15 +249,17 @@
 </template>
 
 <script setup lang="ts">
+import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 import { computed, ref, watch } from 'vue'
 import { vDrag } from '@/components/vDrag/v-drag'
-import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 import { SelectOptions } from '@/shared/dtos/select-options'
 import { SharedRules } from '@/shared/domain/validation/form-rules'
 import { FinancialType } from '@/shared/domain/types/FinancialType'
 import { useSelectFilter } from '@/shared/utils/filter-select'
 import { CategoryOption, ScheduleForm } from '../models/schedule.model'
 import { RecurrenceType } from '../types/RecurrenceType'
+
+const {decimalGreaterThanZero, required} = SharedRules
 
 type FormRef = {
   validate: (shouldFocus?: boolean) => Promise<boolean>
@@ -288,7 +292,6 @@ const personOptions = defineModel<SelectOptions[]>('personOptions', { required: 
 const tagOptions = defineModel<SelectOptions[]>('tagOptions', { required: true })
 const transactionSourceOptions = defineModel<SelectOptions[]>('transactionSourceOptions', { required: true })
 
-const { required } = SharedRules
 const { filterFn } = useSelectFilter()
 const form = ref<FormRef | null>(null)
 const transactionSourceType = ref<TransactionSourceType>('bankAccount')

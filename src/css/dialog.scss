@@ -1,5 +1,5 @@
 .form-dialog-card {
-  width: 1024px;
+  width: 1100px;
   max-width: 95vw;
   border-radius: 18px;
   overflow: hidden;
@@ -16,11 +16,9 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    circle at top right,
-    rgba(255, 255, 255, 0.18),
-    transparent 35%
-  );
+  background: radial-gradient(circle at top right,
+      rgba(255, 255, 255, 0.18),
+      transparent 35%);
   pointer-events: none;
 }
 

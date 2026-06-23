@@ -11,6 +11,9 @@ export const SharedRules = {
 
   decimalGreaterThanZero: (msg = 'O valor deve ser maior que zero'): ValidationRule =>
     (val: string | number | null | undefined) => {
+      console.log('decimalValue');
+
+
       if (val === null || val === undefined || val === '') return true;
 
       const decimalValue = parseDecimalValue(val);
