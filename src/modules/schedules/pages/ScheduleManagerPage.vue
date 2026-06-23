@@ -52,6 +52,8 @@
       v-model:person-options="personOptions"
       v-model:tag-options="tagOptions"
       :category-options="filteredCategoryOptions"
+      :bank-account-options-original="bankAccountOptionsOriginal"
+      :credit-card-options-original="creditCardOptionsOriginal"
       :financial-type="financialType"
       :filter-category-options="filterCategoryOptions"
       :person-options-original="personOptionsOriginal"
@@ -59,7 +61,6 @@
       :saving="saving"
       :tag-options-original="tagOptionsOriginal"
       :title="formTitle"
-      :transaction-source-options-original="transactionSourceOptionsOriginal"
       @delete="onDelete"
       @load-tags="loadTags"
       @save="saveSchedule"
@@ -91,6 +92,8 @@ const {
   deleting,
   filter,
   filteredCategoryOptions,
+  bankAccountOptionsOriginal,
+  creditCardOptionsOriginal,
   filteredTableRows,
   financialType,
   formDialog,
@@ -115,7 +118,6 @@ const {
   tagOptionsOriginal,
   totalAmount,
   transactionSourceOptions,
-  transactionSourceOptionsOriginal,
   filterCategoryOptions,
 } = useScheduleManager()
 

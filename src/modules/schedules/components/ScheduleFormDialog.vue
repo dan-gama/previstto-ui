@@ -61,37 +61,44 @@
               :rules="[required()]"
             />
           </div>
+          <div class="col-12 col-md-9">
+            <q-select
+              v-model="schedule.creditBank"
+              outlined
+              emit-value
+              map-options
+              clearable
+              use-input
+              input-debounce="300"
+              :label="transactionSourceLabel"
+              class="app-field transaction-source-field"
+              :options="transactionSourceOptions"
+              @filter="filterTransactionSources"
+            >
+              <template #prepend>
+                <q-btn-toggle
+                  v-model="transactionSourceType"
+                  unelevated
+                  no-caps
+                  class="transaction-source-toggle"
+                  color="grey-3"
+                  text-color="grey-8"
+                  toggle-color="primary"
+                  toggle-text-color="white"
+                  :options="transactionSourceTypeOptions"
+                  @update:model-value="onTransactionSourceTypeChange"
+                />
+              </template>
+              <template #no-option>
+                <q-item>
+                  <q-item-section class="text-grey-6 text-caption text-center">
+                    Nenhuma origem encontrada
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
           <div class="col-12 col-md-3">
-            <q-select
-              v-model="schedule.creditBank"
-              outlined
-              emit-value
-              map-options
-              clearable
-              use-input
-              input-debounce="300"
-              label="Cartão ou Crédito"
-              class="app-field"
-              :options="transactionSourceOptions"
-              @filter="filterTransactionSources"
-            />
-          </div>
-          <div class="col-12 col-md-5">
-            <q-select
-              v-model="schedule.creditBank"
-              outlined
-              emit-value
-              map-options
-              clearable
-              use-input
-              input-debounce="300"
-              label="Conta bancaria"
-              class="app-field"
-              :options="transactionSourceOptions"
-              @filter="filterTransactionSources"
-            />
-          </div>
-          <div class="col-12 col-md-4">
             <q-input
               v-model="schedule.startingOn"
               outlined
@@ -113,7 +120,7 @@
               </template>
             </q-input>
           </div>
-          <div class="col-12 col-md-8">
+          <div class="col-12 col-md-6">
             <q-select
               v-model="schedule.category"
               :options="categoryOptions"
@@ -166,7 +173,7 @@
               </template>
             </q-select>
           </div>
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-3">
             <q-select
               v-model="schedule.tag"
               outlined
@@ -240,7 +247,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { vDrag } from '@/components/vDrag/v-drag'
 import MoneyInput from '@/shared/components/MoneyInput/MoneyInput.vue'
 import { SelectOptions } from '@/shared/dtos/select-options'
@@ -254,8 +261,12 @@ type FormRef = {
   validate: (shouldFocus?: boolean) => Promise<boolean>
 }
 
+type TransactionSourceType = 'bankAccount' | 'creditCard'
+
 const props = defineProps<{
+  bankAccountOptionsOriginal: SelectOptions[]
   categoryOptions: CategoryOption[]
+  creditCardOptionsOriginal: SelectOptions[]
   financialType: FinancialType
   filterCategoryOptions: (val: string, update: (callback: () => void) => void) => void
   personOptionsOriginal: SelectOptions[]
@@ -263,7 +274,6 @@ const props = defineProps<{
   saving: boolean
   tagOptionsOriginal: SelectOptions[]
   title: string
-  transactionSourceOptionsOriginal: SelectOptions[]
 }>()
 
 const emit = defineEmits<{
@@ -281,6 +291,62 @@ const transactionSourceOptions = defineModel<SelectOptions[]>('transactionSource
 const { required } = SharedRules
 const { filterFn } = useSelectFilter()
 const form = ref<FormRef | null>(null)
+const transactionSourceType = ref<TransactionSourceType>('bankAccount')
+
+const transactionSourceTypeOptions: Array<{ label: string; value: TransactionSourceType }> = [
+  { label: 'Conta Bancária', value: 'bankAccount' },
+  { label: 'Crédito', value: 'creditCard' },
+]
+
+const selectedTransactionSourceOptions = computed(() => {
+  return transactionSourceType.value === 'bankAccount'
+    ? props.bankAccountOptionsOriginal
+    : props.creditCardOptionsOriginal
+})
+
+const transactionSourceLabel = computed(() => {
+  return transactionSourceType.value === 'bankAccount'
+    ? 'Conta bancaria'
+    : 'Cartao'
+})
+
+watch(
+  () => schedule.value.creditBank,
+  (value) => {
+    if (!value) return
+
+    const selectedCreditCard = props.creditCardOptionsOriginal.some((option) => option.value === value)
+
+    if (selectedCreditCard) {
+      transactionSourceType.value = 'creditCard'
+      transactionSourceOptions.value = props.creditCardOptionsOriginal
+      return
+    }
+
+    const selectedBankAccount = props.bankAccountOptionsOriginal.some((option) => option.value === value)
+
+    if (selectedBankAccount) {
+      transactionSourceType.value = 'bankAccount'
+      transactionSourceOptions.value = props.bankAccountOptionsOriginal
+    }
+  },
+  { immediate: true }
+)
+
+watch(
+  selectedTransactionSourceOptions,
+  (options) => {
+    transactionSourceOptions.value = options
+  },
+  { immediate: true }
+)
+
+watch(dialog, (opened) => {
+  if (!opened || schedule.value.creditBank) return
+
+  transactionSourceType.value = 'bankAccount'
+  transactionSourceOptions.value = props.bankAccountOptionsOriginal
+})
 
 async function submitForm() {
   const valid = await form.value?.validate(true)
@@ -290,9 +356,14 @@ async function submitForm() {
 }
 
 function filterTransactionSources(val: string, update: (callback: () => void) => void) {
-  filterFn(val, update, props.transactionSourceOptionsOriginal, (value) => {
+  filterFn(val, update, selectedTransactionSourceOptions.value, (value) => {
     transactionSourceOptions.value = value
   })
+}
+
+function onTransactionSourceTypeChange() {
+  schedule.value.creditBank = null
+  transactionSourceOptions.value = selectedTransactionSourceOptions.value
 }
 
 function filterPersons(val: string, update: (callback: () => void) => void) {
@@ -326,5 +397,17 @@ function filterTags(val: string, update: (callback: () => void) => void) {
       color: #64748b !important;
     }
   }
+}
+
+.transaction-source-field {
+  :deep(.q-field__prepend) {
+    padding-right: 10px;
+  }
+}
+
+.transaction-source-toggle {
+  border-radius: 8px;
+  border: 1px solid #e9eef5;
+  overflow: hidden;
 }
 </style>

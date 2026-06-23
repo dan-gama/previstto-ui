@@ -1,8 +1,9 @@
 import { computed, ref } from 'vue'
 import type { QTableColumn } from 'quasar'
+import { bankAccountService } from '@/modules/bank-accounts/services/bank-account.service'
 import { categoryService } from '@/modules/categories/services/category.service'
+import { creditCardService } from '@/modules/credit-cards/services/credit-card.service'
 import { personService } from '@/modules/persons/services/person.service'
-import { transactionService } from '@/modules/transactions/services/transaction.service'
 import { SelectOptions } from '@/shared/dtos/select-options'
 import { CategorySelect } from '@/shared/domain/interfaces/CategorySelect'
 import { FinancialType } from '@/shared/domain/types/FinancialType'
@@ -42,7 +43,8 @@ export function useScheduleManager() {
   const model = ref<ScheduleForm>(createEmptyScheduleForm(financialType.value))
 
   const transactionSourceOptions = ref<SelectOptions[]>([])
-  const transactionSourceOptionsOriginal = ref<SelectOptions[]>([])
+  const bankAccountOptionsOriginal = ref<SelectOptions[]>([])
+  const creditCardOptionsOriginal = ref<SelectOptions[]>([])
   const personOptions = ref<SelectOptions[]>([])
   const personOptionsOriginal = ref<SelectOptions[]>([])
   const tagOptions = ref<SelectOptions[]>([])
@@ -175,8 +177,21 @@ export function useScheduleManager() {
   }
 
   async function loadTransactionSourceSelect() {
-    transactionSourceOptions.value = await transactionService.getTransactionSourceSelect()
-    transactionSourceOptionsOriginal.value = transactionSourceOptions.value
+    const [bankAccounts, creditCardsList] = await Promise.all([
+      bankAccountService.getSelect(),
+      creditCardService.findAll(),
+    ])
+
+    const creditCards = creditCardsList
+      .filter(f => f.active == true)
+      .map((creditCard) => ({
+      label: `${creditCard.name} final ${creditCard.digits}`,
+      value: creditCard.id,
+    }))
+
+    bankAccountOptionsOriginal.value = bankAccounts
+    creditCardOptionsOriginal.value = creditCards
+    transactionSourceOptions.value = bankAccounts
   }
 
   async function loadInitialData() {
@@ -288,6 +303,8 @@ export function useScheduleManager() {
 
     /* Form */
     filteredCategoryOptions,
+    bankAccountOptionsOriginal,
+    creditCardOptionsOriginal,
     formDialog,
     formTitle,
     model,
@@ -298,7 +315,6 @@ export function useScheduleManager() {
     tagOptions,
     tagOptionsOriginal,
     transactionSourceOptions,
-    transactionSourceOptionsOriginal,
     loadTags,
     onDelete,
     saveSchedule,
