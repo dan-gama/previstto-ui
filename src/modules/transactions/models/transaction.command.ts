@@ -16,7 +16,7 @@ export type CreateTransactionCommand = {
   person: string | null;
 }
 
-export type UpdateScheduleCommand = {
+export type UpdateTransactionCommand = {
   type: FinancialType;
   sourceId: string;
   destinationId: string;
