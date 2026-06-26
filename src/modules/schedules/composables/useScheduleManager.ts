@@ -5,12 +5,12 @@ import { categoryService } from '@/modules/categories/services/category.service'
 import { creditCardService } from '@/modules/credit-cards/services/credit-card.service'
 import { personService } from '@/modules/persons/services/person.service'
 import { SelectOptions } from '@/shared/dtos/select-options'
-import { CategorySelect } from '@/shared/domain/interfaces/CategorySelect'
+import { CategoryOption, CategorySelect } from '@/shared/domain/interfaces/CategorySelect'
 import { FinancialType } from '@/shared/domain/types/FinancialType'
 import { formatDateInput } from '@/shared/utils/date.utils'
 import { notify } from '@/shared/utils/notify.utils'
 import { ScheduleMapper } from '../mappers/schedule.mapper'
-import { CategoryOption, ScheduleForm, ScheduleItem } from '../models/schedule.model'
+import { ScheduleForm, ScheduleItem } from '../models/schedule.model'
 import { scheduleService } from '../services/schedule.services'
 import { RecurrenceType, RecurrenceTypeLabel } from '../types/RecurrenceType'
 
@@ -177,17 +177,10 @@ export function useScheduleManager() {
   }
 
   async function loadTransactionSourceSelect() {
-    const [bankAccounts, creditCardsList] = await Promise.all([
+    const [bankAccounts, creditCards] = await Promise.all([
       bankAccountService.getSelect(),
-      creditCardService.findAll(),
-    ])
-
-    const creditCards = creditCardsList
-      .filter(f => f.active == true)
-      .map((creditCard) => ({
-      label: `${creditCard.name} final ${creditCard.digits}`,
-      value: creditCard.id,
-    }))
+      creditCardService.getSelect(),
+    ]);
 
     bankAccountOptionsOriginal.value = bankAccounts
     creditCardOptionsOriginal.value = creditCards

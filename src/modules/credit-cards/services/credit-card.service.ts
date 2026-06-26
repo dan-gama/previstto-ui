@@ -2,6 +2,7 @@ import http from '@/shared/infrastructure/http/http'
 import { ApiResponse } from '@/shared/infrastructure/interfaces/ApiResponse'
 import { CreditCardForm, CreditCardList } from '../models/credit-card.model'
 import { CreateCreditCardCommand, UpdateCreditCardCommand } from '../models/credit-card.command'
+import { SelectOptions } from '@/shared/dtos/select-options';
 
 const module = 'credit-cards';
 
@@ -26,5 +27,10 @@ export const creditCardService = {
 
   async delete(id: string): Promise<void> {
     await http.delete(`${module}/${id}`);
-  }
+  },
+
+  async getSelect(): Promise<SelectOptions[]> {
+    const { data } = await http.get<ApiResponse<SelectOptions[]>>(`${module}/select`);
+    return data.data;
+  },
 }
